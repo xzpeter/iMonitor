@@ -18,7 +18,7 @@
 #define		MAX_DEVICES_NUM_OF_SAME_PREFIX	32		
 
 /* this MUST be modified when 'dev_usage' is changed. */
-#define		SUPPORTED_DEVICE_PREFIX_N		2
+#define		SUPPORTED_DEVICE_PREFIX_N		1
 
 /* we'll scan all the files in the /dev/ dir, related with the keywords 
    below, and try to allocate every effective file node to a module. */
@@ -39,7 +39,7 @@ static struct _dev_usage {
 	unsigned char type[MAX_DEVICES_NUM_OF_SAME_PREFIX];
 } dev_usage[SUPPORTED_DEVICE_PREFIX_N] = {
 	{ "ttyUSB", 0, 20}, 
-	{ "ttys", 0, 1}
+// 	{ "ttys", 0, 1}
 };
 
 typedef struct _dev_node {
@@ -58,7 +58,7 @@ int mark_related_device_in_dev_usage(RELATED_DEV *r_dev, int value);
 void dev_usage_init(void);
 void dev_usage_clear_before_check(void);
 int dev_list_init(void);
-int check_VIP_list(char *str);
+// int check_VIP_list(char *str);
 int find_index_in_dev_usage(char *keyword);
 int clear_in_use_flag_for_device(int i);
 int unregister_device(int i);
@@ -116,7 +116,7 @@ void dev_usage_clear_before_check(void)
 	int i;
 	for (i = 0; i < SUPPORTED_DEVICE_PREFIX_N; i++) {
 		bzero(dev_usage[i].checked, sizeof(dev_usage[i].checked));
-		bzero(dev_usage[i].type, sizeof(dev_usage[i].checked));
+		bzero(dev_usage[i].type, sizeof(dev_usage[i].type));
 	}
 }
 
@@ -127,20 +127,20 @@ int dev_list_init(void)
 	return 0;
 }
 
-int check_VIP_list(char *str)
-{
-	int i;
-	char *p_key;
-
-	if (str == NULL)
-		return -1;
-
-	for (i = 0; (p_key = dev_usage[i].keyword); i++)
-		if (strstr(str, p_key))
-			return 0;
-
-	return 1;
-}
+// int check_VIP_list(char *str)
+// {
+// 	int i;
+// 	char *p_key;
+// 
+// 	if (str == NULL)
+// 		return -1;
+// 
+// 	for (i = 0; (p_key = dev_usage[i].keyword); i++)
+// 		if (strstr(str, p_key))
+// 			return 0;
+// 
+// 	return 1;
+// }
 
 int find_index_in_dev_usage(char *keyword)
 {
@@ -186,7 +186,7 @@ int unregister_device(int i)
 
 	/* 2. shut down daemon thread */
 	if (pthread_cancel(dev_list.dev[i].idev->thread_id))
-		dm_log(NULL, "\n\n[VITAL ERROR] thread cancel failed. going on.\n\n");
+		dm_log(NULL, "\n[VITAL ERROR] thread cancel failed. going on.\n");
 
 	/* 3. remove device structure */
 	dev_list.dev_total--;
@@ -375,92 +375,6 @@ void clear_dead_modules(void)
 	}
 }
 
-// /* check if there is new device to register, or dead to remove */
-// /* there are 2 kinds of devices to remove :
-//    1. the pidev->status == DEAD (which means that the module doesn't work)
-//    2. device file has gone (maybe the device is disconnected) 
-//    we have to take all these possibilities into consideration.
-//  */
-// int device_check(void)
-// {
-// 	int i, j;
-// 	DIR *dir;
-// 	struct dirent *file;
-// 
-// 	/* open device directory */
-// 	dir = opendir(DEV_DIR);
-// 	if (dir == NULL) {
-// 		dm_log(NULL, "open directory %s failed.", DEV_DIR);
-// 		return -1;
-// 	}
-// 
-// 	/* clear all 'checked' sign */
-// 	dev_usage_clear_before_check();
-// 	/* read devices */
-// 	while ((file = readdir(dir))) {
-// 		int n, index;
-// 		char prefix[20];
-// 		char *name = file->d_name;
-// 
-// 		/* skip the first two files and, 
-// 		   check if the device file is in the VIP list */
-// 		if ((!strcmp(name, ".")) || (!strcmp(name, "..")) 
-// 				|| check_VIP_list(name))
-// 			continue;
-// 
-// 		/* then, the device file is in the VIP list, 
-// 		   get it's place in dev_usage struct */
-// 		split_dev_filename(name, prefix, &n);
-// 		index = dev_prefix_find_index(prefix);
-// 		if (index < 0 || index >= SUPPORTED_DEVICE_PREFIX_N)
-// 			continue;
-// 
-// 		/* index out range */
-// 		if (n >= MAX_DEVICES_NUM_OF_SAME_PREFIX)
-// 			continue;
-// 
-// 		/* set 'checked' sign */
-// 		dev_usage[index].checked[n] = 1;
-// 	}
-// 
-// 	/* do check on every device file (new device, or device removed. */
-// 	for (i = 0; i < SUPPORTED_DEVICE_PREFIX_N; i++) {
-// 		for (j = 0; j < MAX_DEVICES_NUM_OF_SAME_PREFIX; j++) {
-// 			
-// 			if (dev_usage[i].in_use[j] == 0 && dev_usage[i].checked[j] == 1) {
-// 				int ret;
-// 				/* find a new device */
-// 				if ((ret = add_new_unknown_device(i, j)) < 0) {
-// 					/* add device error */
-// 					dm_log(NULL, "[device_check] ADD device %s%d failed.", 
-// 							dev_usage[i].keyword, j);
-// 				} else { /* add ok */
-// 					dm_log(NULL, "[device_check] new device %s registered, index %d.", 
-// 							dev_list.dev[ret].idev->name, ret);
-// 					/* temply, enable device when it's found right now */
-// 				}
-// 			} else if (dev_usage[i].in_use[j] == 1 
-// 					&& dev_usage[i].checked[j] == 0) {
-// 				int ret;
-// 				/* a model in use is untached, try to unreg it */
-// 				if ((ret = remove_untached_device(i, j)) < 0) {
-// 					/* remove error */
-// 					dm_log(NULL, "[device_check] REMOVE device %s%d failed.[%d]", 
-// 							dev_usage[i].keyword, j, ret);
-// 				} else { /* remove ok */
-// 					dm_log(NULL, "[device_check] removed device %s%d index %d.", 
-// 							dev_usage[i].keyword, j, ret);
-// 				}
-// 			}
-// 		} 
-// 	}
-// 
-// 	/* finally, let's see if there is any module delared dead */
-// 	clear_dead_modules();
-// 
-// 	return 0;
-// }
-
 IDEV_TYPE get_device_type(int i, int j)
 {
 	int k;
@@ -498,45 +412,9 @@ void format_one_dev_file_str(char *str, unsigned char *type, IDEV_TYPE n)
 int device_check(void)
 {
 	int i, j;
-	DIR *dir;
-// 	struct dirent *file;
-
-	/* open device directory */
-	dir = opendir(DEV_DIR);
-	if (dir == NULL) {
-		dm_log(NULL, "open directory %s failed.", DEV_DIR);
-		return -1;
-	}
 
 	/* clear all 'checked' sign */
 	dev_usage_clear_before_check();
-
-	/* read devices */
-// 	while ((file = readdir(dir))) {
-// 		int n, index;
-// 		char prefix[20];
-// 		char *name = file->d_name;
-// 
-// 		/* skip the first two files and, 
-// 		   check if the device file is in the VIP list */
-// 		if ((!strcmp(name, ".")) || (!strcmp(name, "..")) 
-// 				|| check_VIP_list(name))
-// 			continue;
-// 
-// 		/* then, the device file is in the VIP list, 
-// 		   get it's place in dev_usage struct */
-// 		split_dev_filename(name, prefix, &n);
-// 		index = dev_prefix_find_index(prefix);
-// 		if (index < 0 || index >= SUPPORTED_DEVICE_PREFIX_N)
-// 			continue;
-// 
-// 		/* index out range */
-// 		if (n >= MAX_DEVICES_NUM_OF_SAME_PREFIX)
-// 			continue;
-// 
-// 		/* set 'checked' sign */
-// 		dev_usage[index].checked[n] = 1;
-// 	}
 
 	/* update 'checked' */
 	for (i = 0; i < SUPPORTED_DEVICE_PREFIX_N; i++) {
@@ -596,10 +474,10 @@ int device_check(void)
 					&dev_file.related_device, (IDEV_TYPE)i);
 
 			if (ret >= 0 && ret <= MAX_DEVICE_NO)
-				dm_log(NULL, "ADD device(%d) %s as %s module successfully.", 
+				dm_log(NULL, "ADD device(%d) %s as %s module.", 
 						ret, dev_file.base_device, dev_model[i].name);
 			else
-				dm_log(NULL, "ERROR add device %s as %s module. ret is %d.", 
+				dm_log(NULL, "ERROR add device %s as %s module. ret[%d].", 
 						dev_file.base_device, dev_model[i].name, ret);
 		}
 	}
@@ -714,6 +592,28 @@ void *thread_call(void *data)
 	return NULL;
 }
 
+void *thread_testing(void *data)
+{
+	/* start all the tests */
+	/* test the first device */
+	if (dev_list.dev[0].active) {
+		int i;
+		void *res;
+		IDEV *p;
+		pthread_t tid[3];
+		p = dev_list.dev[0].idev;
+
+		dm_log(NULL, "prepare to test at cmd.");
+
+		pthread_create(tid, NULL, thread_creg, (void *)p);
+		pthread_create(tid+1, NULL, thread_sms, (void *)p);
+		pthread_create(tid+2, NULL, thread_call, (void *)p);
+		for (i = 0; i < 3; i++)
+			pthread_join(tid[i], &res);
+	}
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	/* init device list */
@@ -724,26 +624,6 @@ int main(int argc, char *argv[])
 	{
 		device_check();
 		sleep(1);
-		/* test the first device */
-		if (dev_list.dev[0].active) {
-			int i;
-			void *res;
-			IDEV *p;
-			pthread_t tid[3];
-			p = dev_list.dev[0].idev;
-
-			if (idev_get_status(p) != READY)
-				continue;
-
-			dm_log(NULL, "prepare to test at cmd.");
-
-			pthread_create(tid, NULL, thread_creg, (void *)p);
-			pthread_create(tid+1, NULL, thread_sms, (void *)p);
-			pthread_create(tid+2, NULL, thread_call, (void *)p);
-			for (i = 0; i < 3; i++)
-				pthread_join(tid[i], &res);
-		}
-		sleep(3);
 	}
 	return 0;
 }

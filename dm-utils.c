@@ -8,6 +8,7 @@
 #include <term.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
 #include "dm.h"
 
 /* split 'ttyUSB12' to 'ttyUSB' and '12' */
@@ -221,19 +222,11 @@ void do_send_and_recv(IDEV *p)
 	/* do the daily recv */
 	{
 		unsigned int len, done;
-// 		unsigned int len_once;
 		char buf[256];
 		char *pch, *pch2;
-// 		len = 0;
-// 		len_once = 1;
-
-// 		while (len_once) {
-// 			len_once = read(p->portfd, buf+len, 255-len);
-// 			len += len_once;
-// 		}
 		len = read(p->portfd, buf, 255);
 
-		if (len) {
+		if (len > 0) {
 			/* do some special treatment to string "\n>" when using SMS at cmd 
 			   solution is : add another "\n" after '\n>' */
 			buf[len] = 0x00;
@@ -257,6 +250,10 @@ void do_send_and_recv(IDEV *p)
 				dm_log(p, "RBUF wrote length %d, while %d needed to write, "
 					"possibly the buffer is not big enough.", done, len);
 			}
+		} else if (len < 0) {
+			dm_log(p, "error in read(): %s", strerror(errno));
+			idev_set_status(p, DEAD);
+			return;
 		}
 	}
 
