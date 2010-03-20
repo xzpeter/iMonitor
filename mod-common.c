@@ -167,8 +167,10 @@ int common_check_device_file(char *file)
 void common_close_port(IDEV *p)
 {
 	idev_lock(p);
-	close(p->portfd);
-	p->portfd = 0;
+	if (p->portfd) {
+		close(p->portfd);
+		p->portfd = 0;
+	}
 	idev_unlock(p);
 }
 

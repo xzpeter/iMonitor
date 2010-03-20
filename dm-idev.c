@@ -160,6 +160,7 @@ free_idev:
 void idev_release(IDEV *pidev)
 {
 	/* I don't know if it is ok or not. */
+	/* TOFIX: how to free a structure with mutex ? */
 	lock_device(pidev);
 	idev_lock(pidev);
 	idev_unlock(pidev);
@@ -170,6 +171,7 @@ void idev_release(IDEV *pidev)
 		dm_log(pidev, "VITAL!! mutex is destroyed while some thread "
 				"is using it!");
 	}
+	pidev->close_port(pidev);
 	pidev->r = rbuf_release(pidev->r);
 	free(pidev);
 }
