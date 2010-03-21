@@ -540,6 +540,16 @@ void *thread_testing(void *data)
 	return 0;
 }
 
+void self_test(IDEV *p)
+{
+	dm_log(p, "In test...");
+	return;
+}
+
+// #define	MULTI
+
+#ifdef MULTI
+
 int main(int argc, char *argv[])
 {
 	/* init device list */
@@ -553,3 +563,32 @@ int main(int argc, char *argv[])
 	}
 	return 0;
 }
+
+#else
+
+int main(int argc, char *argv[])
+{
+	RELATED_DEV rdev;
+	IDEV *p;
+
+	rdev.prefix[0] = 0x00;
+	rdev.start_num = 1;
+	rdev.end_num = 0;
+
+	register_device("ttyUSB0", &rdev, SIM4100);
+
+	if (dev_list.dev[0].active == 0) {
+		dm_log(NULL, "error register device.");
+		return -1;
+	}
+	p = dev_list.dev[0].idev;
+
+	while (idev_get_status(p) != READY) 
+		sleep(1);
+
+	self_test(p);
+
+	return 0;
+}
+
+#endif
