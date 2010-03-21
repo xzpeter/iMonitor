@@ -6,3 +6,5 @@ tags
 iMonitor
 */*.o
 */*.d
+log.latest
+.gdbinit
