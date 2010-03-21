@@ -81,7 +81,9 @@ typedef struct _idev_dev_file {		/* related device files */
 	RELATED_DEV related_device;
 } IDEV_DEV_FILE;
 
-typedef struct _idev {
+typedef struct _idev IDEV;
+
+struct _idev {
 	/* idev data structures */
 	RBUF *r;					/* a simple round buffer */
 	IDEV_AT_BUF at;				/* at cmd buffer */
@@ -97,24 +99,28 @@ typedef struct _idev {
 	IDEV_DEV_FILE dev_file;		/* keep related device files */
 
 	/* idev methods */
-	int (*open_port)(struct _idev *);			/* open comm port, e.g. serial */
-	void (*close_port)(struct _idev *);			/* close comm port, e.g. serial */
-	int (*module_startup)(struct _idev *);		/* do the start up work, not using at_buf */
-	AT_RETURN (*send)(struct _idev *, char *, char *);				/* use this to send a at cmd (buffered) */
-	int (*send_sms)(struct _idev *, char *, char *);			/* send a SMS using send() */
-} IDEV;
+	int (*open_port)(IDEV *);			/* open comm port, e.g. serial */
+	void (*close_port)(IDEV *);			/* close comm port, e.g. serial */
+	int (*module_startup)(IDEV *);		/* do the start up work, not using at_buf */
+	AT_RETURN (*send)(IDEV *, char *, char *);				/* use this to send a at cmd (buffered) */
+	int (*send_sms)(IDEV *, char *, char *);			/* send a SMS using send() */
+	int (*rawsend)(IDEV *, char *, int );
+	int (*forward)(IDEV *, char *, char *, int );
+};
 
 typedef struct _dev_model {
 	char name[32];
 	/* only arg is a file name, returns 1 if the file belongs to it */
-	int (*open_port)(struct _idev *);			/* open comm port, e.g. serial */
-	void (*close_port)(struct _idev *);			/* close comm port, e.g. serial */
+	int (*open_port)(IDEV *);			/* open comm port, e.g. serial */
+	void (*close_port)(IDEV *);			/* close comm port, e.g. serial */
 	int (*check_device_file)(char *);
 	int (*get_related_device)(char *, RELATED_DEV *);
-	int (*module_startup)(struct _idev *);		/* do the start up work, not using at_buf */
+	int (*module_startup)(IDEV *);		/* do the start up work, not using at_buf */
 	int (*device_file_adoptation)(char *, unsigned char *, IDEV_DEV_FILE *);
-	int (*send)(struct _idev *, char *, char *);
-	int (*send_sms)(struct _idev *, char *, char *);			
+	int (*send)(IDEV *, char *, char *);
+	int (*send_sms)(IDEV *, char *, char *);			
+	int (*rawsend)(IDEV *, char *, int );
+	int (*forward)(IDEV *, char *, char *, int );
 } DEV_MODEL;
 
 /* keep module specified infomations */

@@ -11,6 +11,7 @@
 #include "mod-common.h"
 #include "lc6311/lc6311.h"
 #include "sim4100/sim4100.h"
+#include "nms.h"
 
 const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 	{
@@ -23,6 +24,8 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.device_file_adoptation	= common_device_file_adoptation,
 		.send					= common_send,
 		.send_sms				= common_send_sms,
+		.rawsend				= common_rawsend,
+		.forward				= do_balance_forward,
 	},
 	{
 		.name					= "LC6311", 
@@ -34,6 +37,8 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.device_file_adoptation	= lc6311_device_file_adoptation,
 		.send					= common_send,
 		.send_sms				= common_send_sms,
+		.rawsend				= common_rawsend,
+		.forward				= do_balance_forward,
 	}, 
 	{
 		.name					= "SIM4100", 
@@ -45,6 +50,8 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.device_file_adoptation	= sim4100_device_file_adoptation,
 		.send					= common_send,
 		.send_sms				= common_send_sms,
+		.rawsend				= common_rawsend,
+		.forward				= do_balance_forward,
 	}
 };
 
