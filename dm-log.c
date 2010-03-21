@@ -8,6 +8,8 @@
 
 #include "dm-idev.h"
 
+// #define	dbg(format, arg...) fprintf(stderr, "%s: %s: " format "\n", __FILE__, __FUNCTION__, ##arg)
+
 #define		LOGHEAD			"iMon"
 #define		LOG_BUF_LEN		256
 #define		LOG_FILE		"log.latest"
@@ -33,9 +35,12 @@ void dm_log(IDEV *idevp, char *format, ...)
 		m_t = time(NULL);
 		p = localtime(&m_t);
 
+// 		count -= snprintf(_log_end - count, count, 
+// 				"%4d-%02d-%02d %02d:%02d:%02d - ", 1900+p->tm_year, 
+// 				p->tm_mon+1, p->tm_mday, p->tm_hour, 
+// 				p->tm_min, p->tm_sec);
 		count -= snprintf(_log_end - count, count, 
-				"%4d-%02d-%02d %02d:%02d:%02d - ", 1900+p->tm_year, 
-				p->tm_mon+1, p->tm_mday, p->tm_hour, 
+				"%02d:%02d:%02d - ", p->tm_hour, 
 				p->tm_min, p->tm_sec);
 	}
 	count -= snprintf(_log_end - count, count, "[%s] ", head_str);
