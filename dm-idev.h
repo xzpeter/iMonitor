@@ -134,7 +134,7 @@ extern void idev_set_enable(IDEV *p_idev);
 extern int idev_get_enable(IDEV *p_idev);
 extern void idev_set_disable(IDEV *p_idev);
 extern void idev_set_group(IDEV *p_idev, IDEV_GROUP group);
-extern int idev_check_active(IDEV *p);
+// extern int idev_check_active(IDEV *p);
 extern void idev_set_status(IDEV *p_idev, IDEV_STATUS status);
 extern IDEV_STATUS idev_get_status(IDEV *p_idev);
 extern int idev_lock(IDEV *p);

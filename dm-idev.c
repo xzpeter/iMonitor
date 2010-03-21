@@ -10,6 +10,7 @@
 #include "rbuf.h"
 #include "mod-common.h"
 #include "lc6311/lc6311.h"
+#include "sim4100/sim4100.h"
 
 const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 	{
@@ -38,10 +39,10 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.name					= "SIM4100", 
 		.open_port 				= common_open_port, 
 		.close_port				= common_close_port, 
-		.check_device_file 		= common_check_device_file, 
+		.check_device_file 		= sim4100_check_device_file, 
 		.get_related_device		= common_get_related_device,
-		.module_startup			= common_module_startup,
-		.device_file_adoptation	= common_device_file_adoptation,
+		.module_startup			= sim4100_module_startup,
+		.device_file_adoptation	= sim4100_device_file_adoptation,
 		.send					= common_send,
 		.send_sms				= common_send_sms,
 	}

@@ -58,7 +58,6 @@ int mark_related_device_in_dev_usage(RELATED_DEV *r_dev, int value);
 void dev_usage_init(void);
 void dev_usage_clear_before_check(void);
 int dev_list_init(void);
-// int check_VIP_list(char *str);
 int find_index_in_dev_usage(char *keyword);
 int clear_in_use_flag_for_device(int i);
 int unregister_device(int i);
@@ -126,21 +125,6 @@ int dev_list_init(void)
 	bzero(&dev_list, sizeof(dev_list));
 	return 0;
 }
-
-// int check_VIP_list(char *str)
-// {
-// 	int i;
-// 	char *p_key;
-// 
-// 	if (str == NULL)
-// 		return -1;
-// 
-// 	for (i = 0; (p_key = dev_usage[i].keyword); i++)
-// 		if (strstr(str, p_key))
-// 			return 0;
-// 
-// 	return 1;
-// }
 
 int find_index_in_dev_usage(char *keyword)
 {
@@ -258,64 +242,6 @@ int register_device(char *name, RELATED_DEV *rdev, IDEV_TYPE type)
 	/* all ok. */
 	return i;
 }
-
-// /* check if all the devices in the list is active */
-// int check_active(void)
-// {
-// 	int i;
-// 	for (i = 0; i < MAX_DEVICE_NO; i++) {
-// 		if (dev_list.dev[i].active) {
-// 			int active;
-// 			IDEV *p_idev = dev_list.dev[i].idev;
-// 			/* check if the specified idev is still alive */
-// 			active = idev_check_active(p_idev);
-// 			if (!active) {	// the device is dead
-// 				dm_log(NULL, "device [%d,%s] is dead, removing from list.", 
-// 						i, p_idev->name);
-// 				unregister_device(i);
-// 			}
-// 		}
-// 	}
-// 	return 0;
-// }
-
-// /* add device, i & j corresponds to the index in dev_usage */
-// int add_new_unknown_device(int i, int j)
-// {
-// 	int k;
-// 	char dev_file[20];
-// 
-// 	snprintf(dev_file, 20, "%s%d", dev_usage[i].keyword, j);
-// 
-// 	/* check which model it belongs to */
-// 	for (k = 0; k < SUPPORTED_DEVICES; k++) {
-// 		if (dev_model[k].check_device_file(dev_file)) {
-// 			RELATED_DEV rdev;
-// 			int ret;
-// 
-// 			/* find related devices */
-// 			ret = (int)dev_model[k].get_related_device(dev_file, &rdev);
-// 			if (ret)
-// 				continue;
-// 
-// 			/* register the device */
-// 			ret = register_device(dev_file, &rdev, (IDEV_TYPE)k);
-// 
-// 			/* update 'in_use' flag */
-// 			dev_usage[i].in_use[j] = 1;
-// 			/* mark related devices as 'in_use' */
-// 			mark_related_device_in_dev_usage(&rdev, 1);
-// 
-// 			/* check result */
-// 			if (ret >= 0 && ret < MAX_DEVICE_NO)
-// 				return ret;
-// 			else
-// 				return -1;
-// 		}
-// 	}
-// 	/* not found a suitable model */
-// 	return -1;
-// }
 
 /* find device file whose prefix is dev_usage[i].keyword, 
    index is j. return index in the device list, or -1 if not found */
