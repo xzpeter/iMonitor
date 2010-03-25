@@ -24,8 +24,7 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.device_file_adoptation	= common_device_file_adoptation,
 		.send					= common_send,
 		.send_sms				= common_send_sms,
-		.rawsend				= common_rawsend,
-		.forward				= do_balance_forward,
+		.forward				= common_forward,
 	},
 	{
 		.name					= "LC6311", 
@@ -37,8 +36,7 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.device_file_adoptation	= lc6311_device_file_adoptation,
 		.send					= common_send,
 		.send_sms				= common_send_sms,
-		.rawsend				= common_rawsend,
-		.forward				= do_balance_forward,
+		.forward				= common_forward,
 	}, 
 	{
 		.name					= "SIM4100", 
@@ -50,8 +48,7 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.device_file_adoptation	= sim4100_device_file_adoptation,
 		.send					= common_send,
 		.send_sms				= common_send_sms,
-		.rawsend				= common_rawsend,
-		.forward				= do_balance_forward,
+		.forward				= common_forward,
 	}
 };
 
@@ -114,6 +111,7 @@ void idev_register_methods(IDEV *pidev, IDEV_TYPE type)
 	pidev->module_startup = dev_model[type].module_startup;
 	pidev->send = dev_model[type].send;
 	pidev->send_sms = dev_model[type].send_sms;
+	pidev->forward = dev_model[type].forward;
 }
 
 #define		RBUF_SIZE			4096

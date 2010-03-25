@@ -54,9 +54,7 @@ int do_balance_forward(IDEV *p, char *who, char *smsdata, int len)
 {
 	int    i, j, ret;
 	int    len1, len2;
-	char paralist[64], buf[256];
-
-	lock_device(p);
+	char paralist[1024], buf[1024];
 
 	if(len > 220)
 		len = 220;
@@ -67,14 +65,14 @@ int do_balance_forward(IDEV *p, char *who, char *smsdata, int len)
 	len2 = len/2;			// PDU内包含的长度
 
 // 	send_AT_command("AT+CMGF=0");
-	p->send(p, "AT+CMGF=0", NULL);
+	p->send(p, "AT+CMGF=0", NULL, AT_MODE_LINE);
 
 	format_one_number(paralist, len1, 3);
 	paralist[3] = 0x00;
 // 	send_AT_command("AT+CMGS=");
 	strcpy(buf, "AT_CMGS=");
 	strcat(buf, paralist);
-	ret = p->rawsend(p, buf, strlen(paralist));
+	ret = p->send(p, buf, NULL, AT_MODE_LINE);
 
 	strcpy(paralist, "0011000D9168");
 	j = 12;
@@ -107,11 +105,10 @@ int do_balance_forward(IDEV *p, char *who, char *smsdata, int len)
 	paralist[j++]=0x1A;/* must end with 0x1A to use send() */
 // 	paralist[j++]=0x00;
 // 	send_AT_command(RAWDATA);
-	ret = p->send(p, paralist, NULL);
+	ret = p->send(p, paralist, NULL, AT_MODE_LINE);
 
 	// 重新设置回文本格式短信息模式
 // 	send_AT_command("AT+CMGF=1");
-	p->send(p, "AT+CMGF=1", NULL);
-	unlock_device(p);
+	p->send(p, "AT+CMGF=1", NULL, AT_MODE_LINE);
 	return ret;
 }

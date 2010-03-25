@@ -4,5 +4,6 @@
 #include "dm-idev.h"
 #include "dm-utils.h"
 #include "dm-log.h"
+#include "dm-config.h"
 
 #endif

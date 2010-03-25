@@ -8,8 +8,24 @@
 #include <fcntl.h>
 #include <string.h>
 #include "dm.h"
+#include "nms.h"
 
 #define			MAX_CELLID_LEN		20
+
+/****************************
+* LOCALLY USED FUNCTIONS	*
+****************************/
+
+int common_set_sms_mode(IDEV *p, int n)
+{
+	char cmd[32];
+
+	if (p == NULL || (n != 0 && n != 1))
+		return -1;
+
+	snprintf(cmd, 32, "AT+CMGF=%d", n);
+	return p->send(p, cmd, NULL, AT_MODE_LINE);
+}
 
 /****************************
 * VIRTUAL IDEVICE FUNCTIONS	*
@@ -39,7 +55,7 @@ int common_send_sms(IDEV *p, char *who, char *data)
 	}
 	ret = snprintf(cmd_buf, 510, "AT+CMGS=\"%s\"", who);
 	/* send CMGS cmd */
-	ret = (int)p->send(p, cmd_buf, NULL);
+	ret = (int)p->send(p, cmd_buf, NULL, AT_MODE_LINE);
 	if (ret != AT_RAWDATA) {
 		dm_log(p, "SEND SMS cmd error, it's %d, should %d.", 
 				ret, AT_RAWDATA);
@@ -48,7 +64,7 @@ int common_send_sms(IDEV *p, char *who, char *data)
 	sleep(1);
 	/* send rawdata */
 	snprintf(cmd_buf, 510, "%s\x1A", data);
-	ret = (int)p->send(p, cmd_buf, NULL);
+	ret = (int)p->send(p, cmd_buf, NULL, AT_MODE_LINE);
 	if (ret != AT_OK) {
 		dm_log(p, "SEND RAW DATA error, return is %d, should %d.", 
 				ret, AT_OK);
@@ -64,17 +80,75 @@ send_sms_error:
 	return -1;
 }
 
+/* doing forward of a sms index N to another cell phone WHO */
+int common_forward(IDEV *p, char *who, int n)
+{
+	char cmd[64], recv_buf[1024], *pch, *cont;
+	int contlen;
+
+	if (p == NULL || strlen(who) > MAX_MOBILE_ID_LEN ||
+			n < 0 || n > 39 ) 
+		return -1;
+
+// 	/* set cmgf -> 0 */
+// 	if (common_set_sms_mode(p, 0)) {
+// 		dm_log(p, "set_sms_mode error.");
+// 		return -2;
+// 	}
+
+	/* first, read the sms */
+	snprintf(cmd, 64, "AT^DMGR=%02d", n);
+	if (p->send(p, cmd, recv_buf, AT_MODE_BLOCK)) {
+		dm_log(p, "read sms error.");
+		return -3;
+	}
+
+	pch = strstr(recv_buf, "^DMGR:");
+	if (pch == NULL) {
+		dm_log(p, "strstr() error.");
+		return -4;
+	}
+	pch = strchr(pch, '\n');
+	if (pch == NULL) {
+		dm_log(p, "strstr() error 2.");
+		return -5;
+	}
+	cont = ++pch; /* points to the raw sms data */
+	pch = strchr(pch, '\n');
+	if (pch == NULL) {
+		dm_log(p, "strstr() error 3.");
+		return -6;
+	}
+	contlen = pch - cont;
+	dm_log(p, "length of sms to forward: %d", contlen);
+	*pch = 0x00;	/* cut the string */
+
+	puts("===============\n");
+	puts(cont);
+	puts("===============\n");
+	
+	if (do_balance_forward(p, who, cont, contlen)) {
+		dm_log(p, "error in do_balance_forward().");
+		return -7;
+	}
+
+	return 0;
+}
+
 /****************************
 *  BASIC IDEVICE FUNCTIONS	*
 ****************************/
 
-AT_RETURN common_send(IDEV *p, char *data, char *result)
+/* CAUTION!! this function is really common used, but really dangerous, 
+   you must be sure that *data is OBSOLUTELY large enough for any possible
+   data. the recommended length is 1024 AT LEAST */
+AT_RETURN common_send(IDEV *p, char *data, char *result, int mode)
 {
 	char *p1, *p2;
 	char key[128] = {0};
 	int len;
 
-	if ((len = strlen(data)) >= 120) {
+	if ((len = strlen(data)) >= 500) {
 		dm_log(p, "AT CMD TOO LONG, in common_send().");
 		return AT_NOT_RET;
 	}
@@ -83,27 +157,36 @@ AT_RETURN common_send(IDEV *p, char *data, char *result)
 	while (!check_at_ready(p))
 		usleep(100000);
 
-	/* find the keyword */
-	p1 = strpbrk(data, "+^");
-	if (p1) {
-		p2 = strpbrk(p1++, "=?");
-		if (p2) { 
-			memcpy(key, p1, p2-p1);
-			key[p2-p1] = 0x00;
+	p->at.mode = mode;
+	p->at.recv_buf[0] = 0x00; /* clear recv buffer */
+
+	if ( mode & AT_MODE_LINE ) {
+		/* find the keyword */
+		p1 = strpbrk(data, "+^");
+		if (p1) {
+			p2 = strpbrk(p1++, "=?");
+			if (p2) { 
+				memcpy(key, p1, p2-p1);
+				key[p2-p1] = 0x00;
+			} else {
+				strcpy(key, p1);
+			}
 		} else {
-			strcpy(key, p1);
+			/* no key */
+			key[0] = 0x00;
 		}
-	} else {
-		/* no key */
-		key[0] = 0x00;
+		strcpy(p->at.keyword, key);
+	} else { /* AT_MODE_BLOCK */
+		/* save all the block, not a keyword */
+		p->at.keyword[0] = 0x00;
 	}
 
-	if (data[len-1] == 0x1a)
+	if (data[len-1] == 0x1a) 
+		/* do special treatment while sending sms */
 		strcpy(p->at.send_buf, data);
 	else
 		snprintf(p->at.send_buf, sizeof(p->at.send_buf), 
 			"%s\r", data);
-	strcpy(p->at.keyword, key);
 
 	/* order to send! */
 	at_send_it(p);

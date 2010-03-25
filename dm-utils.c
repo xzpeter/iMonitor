@@ -227,8 +227,8 @@ void do_send_and_recv(IDEV *p)
 		len = read(p->portfd, buf, 255);
 
 		if (len > 0) {
-			/* do some special treatment to string "\n>" when using SMS at cmd 
-			   solution is : add another "\n" after '\n>' */
+			/* do some special treatment to string "\n>" when using SMS 
+			   at cmd. solution is : add another "\n" after '\n>' */
 			buf[len] = 0x00;
 			dm_log(p, "recv : %s", buf);
 			if (!strncmp(buf, "> ", 2))
@@ -242,8 +242,8 @@ void do_send_and_recv(IDEV *p)
 				*(pch2+1) = '\n';
 				len++;
 			}
-			/* after this, "\n>" are converted to "\n>\n", now we can recog it.
-			   so tricky ... */
+			/* after this, "\n>" are converted to "\n>\n", 
+			   now we can recog it.  so tricky ... */
 
 			done = r->write(r, buf, len);
 			if (done != len) {
@@ -264,6 +264,16 @@ void do_send_and_recv(IDEV *p)
 // 			dm_log(p, "recv : %s", line);
 			/* recved a whole line */
 			if (at->status == AT_SENT) {
+
+				/* record required response */
+				if (at->mode & AT_MODE_LINE) {
+					if (strstr(line, at->keyword))
+						/* always the newest! */
+						strcpy(at->recv_buf, line);
+				} else { /* mode BLOCK */
+					strcat(at->recv_buf, line);
+				}
+
 				/* host is waiting for "OK" and "keyword" */
 				if (strstr(line, "OK")) {
 					at->ret = AT_OK;
@@ -280,8 +290,7 @@ void do_send_and_recv(IDEV *p)
 				} else if (!strncmp(line, "> ", 2)) {
 					at->ret = AT_RAWDATA;
 					at->status = AT_RECVED;
-				} else if (strstr(line, at->keyword))
-					strcpy(at->recv_buf, line);	/* always the newest! */
+				} 
 			}
 			handle_line(line);
 		}

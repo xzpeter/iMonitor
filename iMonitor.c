@@ -454,14 +454,14 @@ void *thread_creg(void *data)
 	IDEV *p = (IDEV *)data;
 	while (1) {
 		lock_device(p);
-		ret = (AT_RETURN)p->send(p, "AT", NULL);
+		ret = (AT_RETURN)p->send(p, "AT", NULL, AT_MODE_LINE);
 		unlock_device(p);
 		snprintf(tmp, 64, "cmd AT sent, return is %d.", ret);
 		thread_log(logid, tmp);
 		sleep(2);
 
 		lock_device(p);
-		ret = (AT_RETURN)p->send(p, "AT+CREG?", buf);
+		ret = (AT_RETURN)p->send(p, "AT+CREG?", buf, AT_MODE_LINE);
 		snprintf(tmp, 64, "\"AT+CREG?\" sent, return is %d, recv is %s", 
 				ret, buf);
 		thread_log(logid, tmp);
@@ -498,7 +498,7 @@ void *thread_call(void *data)
 	IDEV *p = (IDEV *)data;
 	while (1) {
 		lock_device(p);
-		ret = p->send(p, "ATD10086;", NULL);
+		ret = p->send(p, "ATD10086;", NULL, AT_MODE_LINE);
 		unlock_device(p);
 		if (ret)
 			thread_log(logid, "send ATD error.");
@@ -507,7 +507,7 @@ void *thread_call(void *data)
 		sleep(10);
 
 		lock_device(p);
-		ret = p->send(p, "ATH", NULL);
+		ret = p->send(p, "ATH", NULL, AT_MODE_LINE);
 		unlock_device(p);
 		if (ret)
 			thread_log(logid, "send ATH error.");
@@ -540,12 +540,6 @@ void *thread_testing(void *data)
 	return 0;
 }
 
-void self_test(IDEV *p)
-{
-	dm_log(p, "In test...");
-	return;
-}
-
 // #define	MULTI
 
 #ifdef MULTI
@@ -564,7 +558,15 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-#else
+#else /* DOING SINGLE TEST */
+
+/* test a single module functionality, without the monitoring of iMon */
+void self_test(IDEV *p)
+{
+	p->forward(p, "13811362029", 0);
+	while (1) sleep(1);
+	return;
+}
 
 int main(int argc, char *argv[])
 {

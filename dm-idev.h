@@ -55,13 +55,25 @@ typedef enum _at_return {
 } AT_RETURN;
 
 #define		IDEV_SEND_BUFLEN	128
-#define		IDEV_RECV_BUFLEN	256
+#define		IDEV_RECV_BUFLEN	2048
 #define		IDEV_KEYWORD_LEN	32
+
+/*	define of at.mode:
+	bit index : meanings
+	0 : turn on 'recording' mode if 1, turn off if 0
+	1 : block recording if 1, line record if 0
+*/
+/* use LINE mode, will return only special keywords */
+#define		AT_MODE_LINE		0x00
+/* use BLOCK mode, will return all the at response after the cmd sent,
+   and before OK(or ERROR) is returned */
+#define		AT_MODE_BLOCK		0x01
 
 typedef struct _idev_at_buf {
 	char send_buf[IDEV_SEND_BUFLEN];
 	char recv_buf[IDEV_RECV_BUFLEN];
 	char keyword[IDEV_KEYWORD_LEN];
+	int mode;
 	AT_STATUS status;
 	AT_RETURN ret;
 } IDEV_AT_BUF;
@@ -102,10 +114,9 @@ struct _idev {
 	int (*open_port)(IDEV *);			/* open comm port, e.g. serial */
 	void (*close_port)(IDEV *);			/* close comm port, e.g. serial */
 	int (*module_startup)(IDEV *);		/* do the start up work, not using at_buf */
-	AT_RETURN (*send)(IDEV *, char *, char *);				/* use this to send a at cmd (buffered) */
+	AT_RETURN (*send)(IDEV *, char *, char *, int);				/* use this to send a at cmd (buffered) */
 	int (*send_sms)(IDEV *, char *, char *);			/* send a SMS using send() */
-	int (*rawsend)(IDEV *, char *, int );
-	int (*forward)(IDEV *, char *, char *, int );
+	int (*forward)(IDEV *, char *, int );
 };
 
 typedef struct _dev_model {
@@ -117,10 +128,9 @@ typedef struct _dev_model {
 	int (*get_related_device)(char *, RELATED_DEV *);
 	int (*module_startup)(IDEV *);		/* do the start up work, not using at_buf */
 	int (*device_file_adoptation)(char *, unsigned char *, IDEV_DEV_FILE *);
-	int (*send)(IDEV *, char *, char *);
+	int (*send)(IDEV *, char *, char *, int);
 	int (*send_sms)(IDEV *, char *, char *);			
-	int (*rawsend)(IDEV *, char *, int );
-	int (*forward)(IDEV *, char *, char *, int );
+	int (*forward)(IDEV *, char *, int );
 } DEV_MODEL;
 
 /* keep module specified infomations */
