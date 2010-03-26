@@ -8,3 +8,4 @@ iMonitor
 */*.d
 log.latest
 .gdbinit
+logs
