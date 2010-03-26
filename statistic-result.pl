@@ -24,7 +24,8 @@ foreach my $sms (@LOG_SMS) {
 	@res = `sed -n '/error/p' $sms` or die $!;
 	my $bad = scalar @res;
 	print "modem $type of SMS test result: ";
-	print "\tgood: $good,\tbad: $bad.";
+	print "\tgood: $good, bad: $bad. rate: ", 
+		  int($good/($bad+$good)*100), "\%";
 }
 
 foreach my $creg_file (@LOG_CREG) {
@@ -51,5 +52,6 @@ foreach my $call (@LOG_CALL) {
 	my $good = scalar grep /ATD success/, @dat;
 	my $bad = scalar grep /ATD err/, @dat;
 	print "modem $type of ATD test result: ";
-	print "\tgood: $good, bad: $bad.";
+	print "\tgood: $good, bad: $bad, rate: ", 
+		  int($good/($bad+$good)*100), "\%";
 }
