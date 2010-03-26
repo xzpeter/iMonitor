@@ -427,13 +427,16 @@ void show_all_active_devices(void)
 	dm_log(NULL, "=================");
 }
 
-void thread_log(int n, char *words)
+void thread_log(IDEV *p, char *test_type, char *words)
 {
 	char filename[64];
 	FILE *file;
 	time_t mtime;
+	IDEV_TYPE type;
 
-	snprintf(filename, 64, "log%d.txt", n);
+	type = p->type;
+
+	snprintf(filename, 64, "log-%s-%s.txt", dev_model[type].name, test_type);
 	file = fopen(filename, "a");
 	if (file == NULL) {
 		fprintf(stderr, "failed open %s.\n", filename);
@@ -449,7 +452,7 @@ void *thread_creg(void *data)
 {
 	char buf[64];
 	char tmp[64];
-	int logid = 1;
+	char *logid = "creg";
 	int ret;
 	IDEV *p = (IDEV *)data;
 	while (1) {
@@ -457,14 +460,14 @@ void *thread_creg(void *data)
 		ret = (AT_RETURN)p->send(p, "AT", NULL, AT_MODE_LINE);
 		unlock_device(p);
 		snprintf(tmp, 64, "cmd AT sent, return is %d.", ret);
-		thread_log(logid, tmp);
+		thread_log(p, logid, tmp);
 		sleep(2);
 
 		lock_device(p);
 		ret = (AT_RETURN)p->send(p, "AT+CREG?", buf, AT_MODE_LINE);
 		snprintf(tmp, 64, "\"AT+CREG?\" sent, return is %d, recv is %s", 
 				ret, buf);
-		thread_log(logid, tmp);
+		thread_log(p, logid, tmp);
 		unlock_device(p);
 		sleep(2);
 	}
@@ -474,7 +477,7 @@ void *thread_creg(void *data)
 /* task 2. Send SMS ? */
 void *thread_sms(void *data)
 {
-	int logid = 2;
+	char *logid = "sms";
 	int ret;
 	IDEV *p = (IDEV *)data;
 	while (1) {
@@ -482,9 +485,9 @@ void *thread_sms(void *data)
 		ret = p->send_sms(p, "10086", "hello 10086.");
 		unlock_device(p);
 		if (ret)
-			thread_log(logid, "send sms error.");
+			thread_log(p, logid, "send sms error.");
 		else
-			thread_log(logid, "send sms successfully.");
+			thread_log(p, logid, "send sms successfully.");
 		sleep(5);
 	}
 	return NULL;
@@ -493,7 +496,7 @@ void *thread_sms(void *data)
 /* task 3. Call */
 void *thread_call(void *data)
 {
-	int logid = 3;
+	char *logid = "call";
 	int ret;
 	IDEV *p = (IDEV *)data;
 	while (1) {
@@ -501,60 +504,74 @@ void *thread_call(void *data)
 		ret = p->send(p, "ATD10086;", NULL, AT_MODE_LINE);
 		unlock_device(p);
 		if (ret)
-			thread_log(logid, "send ATD error.");
+			thread_log(p, logid, "send ATD error.");
 		else
-			thread_log(logid, "send ATD successfully.");
+			thread_log(p, logid, "send ATD successfully.");
 		sleep(10);
 
 		lock_device(p);
 		ret = p->send(p, "ATH", NULL, AT_MODE_LINE);
 		unlock_device(p);
 		if (ret)
-			thread_log(logid, "send ATH error.");
+			thread_log(p, logid, "send ATH error.");
 		else
-			thread_log(logid, "send ATH successfully.");
+			thread_log(p, logid, "send ATH successfully.");
 		sleep(10);
 	}
 	return NULL;
 }
 
-void *thread_testing(void *data)
+void *single_modem_testing(void *data)
 {
 	/* start all the tests */
-	/* test the first device */
-	if (dev_list.dev[0].active) {
-		int i;
-		void *res;
-		IDEV *p;
-		pthread_t tid[3];
-		p = dev_list.dev[0].idev;
+	while (1) {
+		if (dev_list.dev[0].active ) {
+			IDEV *p = dev_list.dev[0].idev;
+			if (p->status == READY) {
+				int i;
+				void *res;
+				IDEV *p;
+				pthread_t tid[3];
+				p = dev_list.dev[0].idev;
 
-		dm_log(NULL, "prepare to test at cmd.");
+				dm_log(NULL, "device discovered, prepare to test...");
 
-		pthread_create(tid, NULL, thread_creg, (void *)p);
-		pthread_create(tid+1, NULL, thread_sms, (void *)p);
-		pthread_create(tid+2, NULL, thread_call, (void *)p);
-		for (i = 0; i < 3; i++)
-			pthread_join(tid[i], &res);
+				pthread_create(tid, NULL, thread_creg, (void *)p);
+				pthread_create(tid+1, NULL, thread_sms, (void *)p);
+				pthread_create(tid+2, NULL, thread_call, (void *)p);
+				for (i = 0; i < 3; i++)
+					pthread_join(tid[i], &res);
+				/* until all dead */
+			}
+		}
+		sleep(5);
 	}
 	return 0;
 }
 
-// #define	MULTI
+#define	MULTI_THERAD_SINGLE_MODEM
 
-#ifdef MULTI
+#ifdef MULTI_THERAD_SINGLE_MODEM
+
+/* test single modem with multiple threads. */
 
 int main(int argc, char *argv[])
 {
+	pthread_t main_thread;
+
 	/* init device list */
 	dev_list_init();
 	/* set all devices to 'not_in_use', which is 0 */
 	dev_usage_init();
+	/* start testing thread */
+	pthread_create(&main_thread, NULL, single_modem_testing, NULL);
+
 	while(1) 
 	{
 		device_check();
 		sleep(1);
 	}
+
 	return 0;
 }
 
