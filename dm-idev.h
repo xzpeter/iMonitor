@@ -30,10 +30,13 @@ typedef enum _idev_group {
 } IDEV_GROUP;
 
 typedef enum _idev_status {
-	INIT	=	1,
-	READY	=	2, 
-	WORKING	=	3, 
-	DEAD	=	99
+	INIT		=	1,
+	READY		=	2, 
+	WORKING		=	3, 
+	SICK		=	80,	/* status >= SICK is not right ... */
+	UNTACHED	=	97,
+	WAIT_USERS	=	98,
+	DEAD		=	99,
 } IDEV_STATUS;
 
 typedef enum _at_status {
@@ -102,6 +105,7 @@ struct _idev {
 	char name[IDEV_NAME_LEN];	/* device (file) name */
 	IDEV_TYPE type;				/* decide which driver to use */
 	IDEV_GROUP group;			/* COMM, TESTEE or IDLE */ 
+	unsigned int users_count;	/* count of users who are using the mod */
 	int enabled;				/* if the device is activated */
 	pthread_t thread_id;		/* thread id of the listening thread */
 	IDEV_STATUS status;			/* INIT, READY, WORKING, DEAD */
@@ -157,5 +161,8 @@ extern int idev_lock(IDEV *p);
 extern int idev_unlock(IDEV *p);
 int lock_device(IDEV *p);
 int unlock_device(IDEV *p);
+void idev_user_malloc(IDEV *pidev);
+void idev_user_free(IDEV *pidev);
+int idev_is_sick(IDEV *p);
 
 #endif

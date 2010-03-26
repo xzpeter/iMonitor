@@ -161,12 +161,22 @@ int clear_in_use_flag_for_device(int i)
    device list.  */
 int unregister_device(int i)
 {
+	IDEV *p;
 	if (dev_list.dev[i].active == 0)
 		return -1;
 
 	/* 1. clear flags */
 	if (clear_in_use_flag_for_device(i))
 		return -2;
+
+	p = dev_list.dev[i].idev;
+
+	/* I don't know if it is ok or not. */
+	/* TOFIX: how to free a structure with mutex ? */
+	lock_device(p);
+	idev_lock(p);
+	idev_unlock(p);
+	unlock_device(p);
 
 	/* 2. shut down daemon thread */
 	if (pthread_cancel(dev_list.dev[i].idev->thread_id))
@@ -177,8 +187,10 @@ int unregister_device(int i)
 
 	dev_list.dev[i].active = 0;
 
-	idev_release(dev_list.dev[i].idev);
+	idev_release(p);
 	dev_list.dev[i].idev = NULL;
+
+	dm_log(NULL, "REMOVING device index %d.", i);
 
 	/* done */
 	return 0;
@@ -275,10 +287,21 @@ int find_device_file_in_use(int i, int j)
 int remove_untached_device(int i, int j)
 {
 	int n;
+	IDEV *p;
 	/* find which device it belongs */
 	n = find_device_file_in_use(i, j);
 	if (n == -1)	/* not found */
 		return -1;
+
+	p = dev_list.dev[n].idev;
+
+	/* added 3-26: 
+	   before we try to obtain the device lock, we have to tell
+	   everyone using the device, that "THE DEVICE IS DYING!!"*/
+	idev_set_status(p, UNTACHED);
+	while (idev_get_status(p) != DEAD) 
+		/* wait the response from daemon thread */
+		sleep(1);
 
 	/* unregister device from list */
 	if (unregister_device(n))
@@ -455,12 +478,14 @@ void *thread_creg(void *data)
 	char *logid = "creg";
 	int ret;
 	IDEV *p = (IDEV *)data;
+	idev_user_malloc(p);
 	while (1) {
 		lock_device(p);
 		ret = (AT_RETURN)p->send(p, "AT", NULL, AT_MODE_LINE);
 		unlock_device(p);
 		snprintf(tmp, 64, "cmd AT sent, return is %d.", ret);
 		thread_log(p, logid, tmp);
+		if (idev_is_sick(p)) break;
 		sleep(2);
 
 		lock_device(p);
@@ -469,8 +494,10 @@ void *thread_creg(void *data)
 				ret, buf);
 		thread_log(p, logid, tmp);
 		unlock_device(p);
+		if (idev_is_sick(p)) break;
 		sleep(2);
 	}
+	idev_user_free(p);
 	return NULL;
 }
 
@@ -480,6 +507,7 @@ void *thread_sms(void *data)
 	char *logid = "sms";
 	int ret;
 	IDEV *p = (IDEV *)data;
+	idev_user_malloc(p);
 	while (1) {
 		lock_device(p);
 		ret = p->send_sms(p, "10086", "hello 10086.");
@@ -488,8 +516,10 @@ void *thread_sms(void *data)
 			thread_log(p, logid, "send sms error.");
 		else
 			thread_log(p, logid, "send sms successfully.");
+		if (idev_is_sick(p)) break;
 		sleep(5);
 	}
+	idev_user_free(p);
 	return NULL;
 }
 
@@ -499,6 +529,7 @@ void *thread_call(void *data)
 	char *logid = "call";
 	int ret;
 	IDEV *p = (IDEV *)data;
+	idev_user_malloc(p);
 	while (1) {
 		lock_device(p);
 		ret = p->send(p, "ATD10086;", NULL, AT_MODE_LINE);
@@ -507,6 +538,7 @@ void *thread_call(void *data)
 			thread_log(p, logid, "send ATD error.");
 		else
 			thread_log(p, logid, "send ATD successfully.");
+		if (idev_is_sick(p)) break;
 		sleep(10);
 
 		lock_device(p);
@@ -516,12 +548,22 @@ void *thread_call(void *data)
 			thread_log(p, logid, "send ATH error.");
 		else
 			thread_log(p, logid, "send ATH successfully.");
+		if (idev_is_sick(p)) break;
 		sleep(10);
 	}
+	idev_user_free(p);
 	return NULL;
 }
 
-void *single_modem_testing(void *data)
+// #define	SIMGLE_THREAD_SINGLE_MODEM	1
+#define	MULTI_THERAD_SINGLE_MODEM	1
+// #define	MULTI_THREAD_MULTI_MODEM	1
+
+/*************************************************/
+#if MULTI_THERAD_MULTI_MODEM
+/*************************************************/
+
+void *multi_modem_testing(void *data)
 {
 	/* start all the tests */
 	while (1) {
@@ -549,9 +591,38 @@ void *single_modem_testing(void *data)
 	return 0;
 }
 
-#define	MULTI_THERAD_SINGLE_MODEM
+/*************************************************/
+#elif MULTI_THERAD_SINGLE_MODEM
+/*************************************************/
 
-#ifdef MULTI_THERAD_SINGLE_MODEM
+void *single_modem_testing(void *data)
+{
+	/* start all the tests */
+	while (1) {
+		if (dev_list.dev[0].active ) {
+			IDEV *p = dev_list.dev[0].idev;
+			if (p->status == READY) {
+				int i;
+				void *res;
+				IDEV *p;
+				pthread_t tid[3];
+				p = dev_list.dev[0].idev;
+
+				dm_log(NULL, "device discovered, prepare to test...");
+
+				pthread_create(tid, NULL, thread_creg, (void *)p);
+				pthread_create(tid+1, NULL, thread_sms, (void *)p);
+				pthread_create(tid+2, NULL, thread_call, (void *)p);
+				for (i = 0; i < 3; i++)
+					pthread_join(tid[i], &res);
+				/* until all dead */
+			}
+		}
+		dm_log(NULL, "waiting for active modems ...");
+		sleep(5);
+	}
+	return 0;
+}
 
 /* test single modem with multiple threads. */
 
@@ -568,6 +639,7 @@ int main(int argc, char *argv[])
 
 	while(1) 
 	{
+		dm_log(NULL, "start to check device ...");
 		device_check();
 		sleep(1);
 	}
@@ -575,7 +647,9 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-#else /* DOING SINGLE TEST */
+/*************************************************/
+#elif SINGLE_THREAD_SINGLE_MODEM/* DOING SINGLE TEST */
+/*************************************************/
 
 /* test a single module functionality, without the monitoring of iMon */
 void self_test(IDEV *p)

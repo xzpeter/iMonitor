@@ -52,9 +52,17 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 	}
 };
 
+/* check if the device is ok or not */
+int idev_is_sick(IDEV *p)
+{
+	return (idev_get_status(p) >= SICK);
+}
+
 /* call this to check if your at cmd has recved */
 int check_at_recved(IDEV *p)
 {
+	if (idev_is_sick(p))
+		return 1; /* force return true */
 	return (p->at.status == AT_RECVED);
 }
 
@@ -70,6 +78,8 @@ void at_recved_done(IDEV *p)
 /* check if at buf is ready for your command */
 int check_at_ready(IDEV *p)
 {
+	if (idev_is_sick(p))
+		return 1; /* force return true */
 	return (p->at.status == AT_READY);
 }
 
@@ -142,6 +152,8 @@ IDEV * idev_init(char *name, RELATED_DEV *rdev, IDEV_TYPE type)
 		pidev->group = NONE;
 		/* default status is INIT */
 		pidev->status = INIT;
+		/* default users count is 0 */
+		pidev->users_count = 0;
 		/* init mutex */
 		// pidev->mutex = PTHREAD_MUTEX_INITIALIZER;
 		pthread_mutex_init(&(pidev->mutex), NULL);
@@ -165,13 +177,6 @@ free_idev:
 /* free a idev structure */
 void idev_release(IDEV *pidev)
 {
-	/* I don't know if it is ok or not. */
-	/* TOFIX: how to free a structure with mutex ? */
-	lock_device(pidev);
-	idev_lock(pidev);
-	idev_unlock(pidev);
-	unlock_device(pidev);
-
 	if (pthread_mutex_destroy(&pidev->mutex) || 
 		pthread_mutex_destroy(&pidev->dev_mutex)) {
 		dm_log(pidev, "VITAL!! mutex is destroyed while some thread "
@@ -181,6 +186,30 @@ void idev_release(IDEV *pidev)
 	pidev->r = rbuf_release(pidev->r);
 	free(pidev);
 }
+
+void idev_user_malloc(IDEV *pidev)
+{
+	idev_lock(pidev);
+	pidev->users_count++;
+	dm_log(pidev, "%d USERS.", pidev->users_count);
+	if (pidev->users_count > MAX_USERS_PER_MODEM) {
+		dm_log(pidev, "VITAL ERROR!!! USER OVER MAX!!");
+		exit(0);
+	}
+	idev_unlock(pidev);
+}	
+
+void idev_user_free(IDEV *pidev)
+{
+	idev_lock(pidev);
+	pidev->users_count--;
+	dm_log(pidev, "%d USERS.", pidev->users_count);
+	if (pidev->users_count > MAX_USERS_PER_MODEM) {
+		dm_log(pidev, "VITAL ERROR!!! USER OVER MAX!!");
+		exit(0);
+	}
+	idev_unlock(pidev);
+}	
 
 void idev_set_enable(IDEV *pidev)
 {

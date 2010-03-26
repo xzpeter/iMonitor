@@ -156,6 +156,8 @@ AT_RETURN common_send(IDEV *p, char *data, char *result, int mode)
 	/* wait until device is ready */
 	while (!check_at_ready(p))
 		usleep(100000);
+	if (idev_is_sick(p))
+		return AT_NOT_RET;
 
 	p->at.mode = mode;
 	p->at.recv_buf[0] = 0x00; /* clear recv buffer */
@@ -193,6 +195,8 @@ AT_RETURN common_send(IDEV *p, char *data, char *result, int mode)
 	/* wait until job is done */
 	while (!check_at_recved(p))
 		usleep(100000);
+	if (idev_is_sick(p))
+		return AT_NOT_RET;
 
 	/* if the caller supplied a buffer to recv results, let's do it. */
 	if (result)

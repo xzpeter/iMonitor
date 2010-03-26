@@ -316,6 +316,17 @@ void *device_daemon(void *pdata)
 				do_send_and_recv(p);
 				/* do send and recv */
 				break;
+			case UNTACHED:
+				dm_log(p, "UNTACHED ?! Roger ! now there are %d users"
+						" accessing the modem.", p->users_count);
+				idev_set_status(p, WAIT_USERS);
+				break;
+			case WAIT_USERS:
+				if (p->users_count == 0) {
+					dm_log(p, "all users acknowledged. marking DEAD.");
+					idev_set_status(p, DEAD);
+				}
+				break;
 			case DEAD:
 				dm_log(p, "hello main proc, I am dead ...");
 				sleep(10);

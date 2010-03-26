@@ -7,6 +7,7 @@
 #ifndef		__DM_CONFIG_H__
 #define		__DM_CONFIG_H__
 
-#define		MAX_MOBILE_ID_LEN	20
+#define		MAX_MOBILE_ID_LEN		20
+#define		MAX_USERS_PER_MODEM		100
 
 #endif
