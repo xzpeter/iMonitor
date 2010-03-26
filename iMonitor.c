@@ -44,6 +44,7 @@ static struct _dev_usage {
 
 typedef struct _dev_node {
 	int active;
+	int during_test;	/* used only in modem test */
 	IDEV *idev;
 } DEV_NODE;
 
@@ -186,6 +187,7 @@ int unregister_device(int i)
 	dev_list.dev_total--;
 
 	dev_list.dev[i].active = 0;
+	dev_list.dev[i].during_test = 0;
 
 	idev_release(p);
 	dev_list.dev[i].idev = NULL;
@@ -556,38 +558,57 @@ void *thread_call(void *data)
 }
 
 // #define	SIMGLE_THREAD_SINGLE_MODEM	1
-#define	MULTI_THERAD_SINGLE_MODEM	1
-// #define	MULTI_THREAD_MULTI_MODEM	1
+// #define	MULTI_THERAD_SINGLE_MODEM	1
+#define	MULTI_THREAD_MULTI_MODEM	1
 
 /*************************************************/
-#if MULTI_THERAD_MULTI_MODEM
+#if MULTI_THREAD_MULTI_MODEM
 /*************************************************/
 
 void *multi_modem_testing(void *data)
 {
 	/* start all the tests */
 	while (1) {
-		if (dev_list.dev[0].active ) {
-			IDEV *p = dev_list.dev[0].idev;
-			if (p->status == READY) {
-				int i;
-				void *res;
-				IDEV *p;
+		int i;
+		for (i = 0; i < MAX_DEVICE_NO; i++) {
+			IDEV *p = dev_list.dev[i].idev;
+			if (dev_list.dev[i].active && 
+					(dev_list.dev[i].during_test == 0) &&
+					p->status == READY) {
 				pthread_t tid[3];
-				p = dev_list.dev[0].idev;
 
-				dm_log(NULL, "device discovered, prepare to test...");
+				dev_list.dev[i].during_test = 1;
+				dm_log(NULL, "device %s discovered, prepare to test...", 
+						p->name);
 
 				pthread_create(tid, NULL, thread_creg, (void *)p);
 				pthread_create(tid+1, NULL, thread_sms, (void *)p);
 				pthread_create(tid+2, NULL, thread_call, (void *)p);
-				for (i = 0; i < 3; i++)
-					pthread_join(tid[i], &res);
-				/* until all dead */
 			}
 		}
 		sleep(5);
 	}
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	pthread_t main_thread;
+
+	/* init device list */
+	dev_list_init();
+	/* set all devices to 'not_in_use', which is 0 */
+	dev_usage_init();
+	/* start testing thread */
+	pthread_create(&main_thread, NULL, multi_modem_testing, NULL);
+
+	while(1) 
+	{
+// 		dm_log(NULL, "start to check device ...");
+		device_check();
+		sleep(1);
+	}
+
 	return 0;
 }
 
@@ -639,7 +660,7 @@ int main(int argc, char *argv[])
 
 	while(1) 
 	{
-		dm_log(NULL, "start to check device ...");
+// 		dm_log(NULL, "start to check device ...");
 		device_check();
 		sleep(1);
 	}
