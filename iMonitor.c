@@ -382,10 +382,12 @@ int device_check(void)
 		for (j = dev_usage[i].start_num; j <= dev_usage[i].end_num; j++) {
 			if (dev_usage[i].in_use[j] == 0 && dev_usage[i].checked[j] == 1) {
 				/* a new device file */
+                dm_log(NULL, "%s%d found.", dev_usage[i].keyword, j);
 				dev_usage[i].type[j] = get_device_type(i, j);
 			} else if (dev_usage[i].in_use[j] == 1 
 					&& dev_usage[i].checked[j] == 0) {
 				int ret;
+                dm_log(NULL, "%s%d removed.", dev_usage[i].keyword, j);
 				/* a model in use is untached, try to unreg it */
 				if ((ret = remove_untached_device(i, j)) < 0) {
 					/* remove error */
