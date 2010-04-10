@@ -139,6 +139,7 @@ void idev_register_methods(IDEV *pidev, IDEV_TYPE type)
 	pidev->send = dev_model[type].send;
 	pidev->send_sms = dev_model[type].send_sms;
 	pidev->forward = dev_model[type].forward;
+	pidev->parse_line = dev_model[type].parse_line;
 }
 
 #define		RBUF_SIZE			4096
