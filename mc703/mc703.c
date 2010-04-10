@@ -252,3 +252,10 @@ send_sms_error:
 	return -1;
 
 }
+
+int mc703_parse_line(IDEV *p, char *line)
+{
+	/* first, we should notice a flag if a sms received */
+	
+	return 0;
+}

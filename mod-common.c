@@ -287,3 +287,8 @@ int common_open_port(IDEV *pidev)
 
 	return 0;
 }
+
+int common_parse_line(IDEV *p, char *line)
+{
+	return 0;
+}

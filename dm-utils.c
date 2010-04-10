@@ -175,8 +175,10 @@ void do_init_work(IDEV *p)
 }
 
 /* all the infomation handles in here */
-int handle_line(char *line)
+int handle_line(IDEV *p, char *line)
 {
+	/* modem specified function to parse the line */
+	p->parse_line(p, line);
 	return 0;
 }
 
@@ -292,7 +294,7 @@ void do_send_and_recv(IDEV *p)
 					at->status = AT_RECVED;
 				} 
 			}
-			handle_line(line);
+			handle_line(p, line);
 		}
 	}
 }

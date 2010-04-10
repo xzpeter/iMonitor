@@ -30,4 +30,7 @@ int common_open_port(IDEV *pidev);
 /* forward a sms */
 int common_forward(IDEV *p, char *who, int n);
 
+/* parsing a line received from modem. */
+int common_parse_line(IDEV *p, char *line);
+
 #endif

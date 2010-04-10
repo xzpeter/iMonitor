@@ -26,6 +26,7 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.send					= common_send,
 		.send_sms				= common_send_sms,
 		.forward				= common_forward,
+		.parse_line = common_parse_line,
 	},
 	{
 		.name					= "LC6311", 
@@ -38,6 +39,7 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.send					= common_send,
 		.send_sms				= common_send_sms,
 		.forward				= common_forward,
+		.parse_line = common_parse_line,
 	}, 
 	{
 		.name					= "SIM4100", 
@@ -50,6 +52,7 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.send					= common_send,
 		.send_sms				= common_send_sms,
 		.forward				= common_forward,
+		.parse_line = common_parse_line,
 	},
 	{
 		.name					= "MC703", 
@@ -62,6 +65,7 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.send					= common_send,
 		.send_sms				= mc703_send_sms,
 		.forward				= common_forward,
+		.parse_line = common_parse_line,
 	}
 };
 

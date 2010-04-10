@@ -115,6 +115,13 @@ struct _idev {
 	int portfd;					/* file handler of the serial port */
 	IDEV_DEV_FILE dev_file;		/* keep related device files */
 
+	/* keep some private data for different kind of modems */
+	union {
+		struct {
+			char sms_return;	/* use this flag to indicate sms results */
+		} mc703 ;
+	} private_data ;
+	
 	/* idev methods */
 	int (*open_port)(IDEV *);			/* open comm port, e.g. serial */
 	void (*close_port)(IDEV *);			/* close comm port, e.g. serial */
@@ -122,6 +129,7 @@ struct _idev {
 	AT_RETURN (*send)(IDEV *, char *, char *, int);				/* use this to send a at cmd (buffered) */
 	int (*send_sms)(IDEV *, char *, char *);			/* send a SMS using send() */
 	int (*forward)(IDEV *, char *, int );
+	int (*parse_line)(IDEV *, char *);	/* modem specified parsing line function */
 };
 
 typedef struct _dev_model {
@@ -136,6 +144,7 @@ typedef struct _dev_model {
 	int (*send)(IDEV *, char *, char *, int);
 	int (*send_sms)(IDEV *, char *, char *);			
 	int (*forward)(IDEV *, char *, int );
+	int (*parse_line)(IDEV *, char *);	/* modem specified parsing line function */
 } DEV_MODEL;
 
 /* keep module specified infomations */
