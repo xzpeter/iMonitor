@@ -214,13 +214,14 @@ int mc703_send_sms(IDEV *p, char *who, char *data)
 	/* p->send must be implemented first */
 	char cmd_buf[512];
 	int ret;
+
+	/* clear sms return flag for mc703 modem */
+	p->private_data.mc703.sms_return = MC703_SMS_RETURN_WAIT;
+
 	/* first, get the ownership of the device */
 	//	lock_device(p);
 	if ((ret = strlen(who)) >= MAX_MOBILE_ID_LEN) {
-		dm_log(p, "CELLID TOO LONG in common_send_sms(), [len=%d] : %s",
-				ret, who);
-		goto send_sms_error;
-	}
+		dm_log(p, "CELLID TOO LONG in common_send_sms(), [len=%d] : %s", ret, who); goto send_sms_error; }
 	if (strlen(data) >= 500) {
 		dm_log(p, "DATA TOO LONG in common_send_sms(), [len=%d].", data);
 		goto send_sms_error;
@@ -243,6 +244,13 @@ int mc703_send_sms(IDEV *p, char *who, char *data)
 		goto send_sms_error;
 	}
 	/* send ok */
+
+	while (p->private_data.mc703.sms_return == MC703_SMS_RETURN_WAIT) {
+		if (idev_is_sick(p)) 
+			goto send_sms_error;
+		usleep(300000);
+	}
+
 	dm_log(p, "SMS sent : %s ---> %s", data, who);
 //	unlock_device(p);
 	return 0;
@@ -256,6 +264,10 @@ send_sms_error:
 int mc703_parse_line(IDEV *p, char *line)
 {
 	/* first, we should notice a flag if a sms received */
-	
+	if (strstr(line, "^HCMGSS"))
+		p->private_data.mc703.sms_return = MC703_SMS_RETURN_OK;
+	else if (strstr(line, "^HCMGSF"))
+		p->private_data.mc703.sms_return = MC703_SMS_RETURN_ERR;
+
 	return 0;
 }

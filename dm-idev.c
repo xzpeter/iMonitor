@@ -65,7 +65,7 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.send					= common_send,
 		.send_sms				= mc703_send_sms,
 		.forward				= common_forward,
-		.parse_line = common_parse_line,
+		.parse_line = mc703_parse_line,
 	}
 };
 
