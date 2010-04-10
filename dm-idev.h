@@ -13,13 +13,14 @@ typedef void *(* handler2)(void *, void *);
 typedef void *(* handler3)(void *, void *, void *);
 
 /* how many devices are supported */
-#define		SUPPORTED_DEVICES				3
+#define		SUPPORTED_DEVICES				4
 typedef enum _idev_type {
 	UNKNOWN		= 0,
 	LC6311		= 1,
 	SIM4100		= 2,
 // 	ETHERNET	= 3,
 // 	WLAN		= 4, 
+	MC703		= 5,
 } IDEV_TYPE;
 
 typedef enum _idev_group {

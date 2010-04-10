@@ -11,6 +11,7 @@
 #include "mod-common.h"
 #include "lc6311/lc6311.h"
 #include "sim4100/sim4100.h"
+#include "mc703/mc703.h"
 #include "nms.h"
 
 const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
@@ -48,6 +49,18 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.device_file_adoptation	= sim4100_device_file_adoptation,
 		.send					= common_send,
 		.send_sms				= common_send_sms,
+		.forward				= common_forward,
+	},
+	{
+		.name					= "MC703", 
+		.open_port 				= common_open_port, 
+		.close_port				= common_close_port, 
+		.check_device_file 		= mc703_check_device_file, 
+		.get_related_device		= mc703_get_related_device,
+		.module_startup			= mc703_module_startup,
+		.device_file_adoptation	= mc703_device_file_adoptation,
+		.send					= common_send,
+		.send_sms				= mc703_send_sms,
 		.forward				= common_forward,
 	}
 };

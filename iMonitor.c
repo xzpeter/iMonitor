@@ -536,7 +536,7 @@ void *thread_call(void *data)
 	idev_user_malloc(p);
 	while (1) {
 		lock_device(p);
-		ret = p->send(p, "ATD10086;", NULL, AT_MODE_LINE);
+		ret = p->send(p, "AT+CDV10000", NULL, AT_MODE_LINE);
 		unlock_device(p);
 		if (ret)
 			thread_log(p, logid, "send ATD error.");
@@ -546,7 +546,7 @@ void *thread_call(void *data)
 		sleep(10);
 
 		lock_device(p);
-		ret = p->send(p, "ATH", NULL, AT_MODE_LINE);
+		ret = p->send(p, "AT+CHV", NULL, AT_MODE_LINE);
 		unlock_device(p);
 		if (ret)
 			thread_log(p, logid, "send ATH error.");
@@ -583,9 +583,9 @@ void *multi_modem_testing(void *data)
 				dm_log(NULL, "device %s discovered, prepare to test...", 
 						p->name);
 
-				pthread_create(tid, NULL, thread_creg, (void *)p);
+//				pthread_create(tid, NULL, thread_creg, (void *)p);
 				pthread_create(tid+1, NULL, thread_sms, (void *)p);
-				pthread_create(tid+2, NULL, thread_call, (void *)p);
+//				pthread_create(tid+2, NULL, thread_call, (void *)p);
 			}
 		}
 		sleep(5);

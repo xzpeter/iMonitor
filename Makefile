@@ -2,7 +2,7 @@ PWD_RET = $(shell pwd)
 EXEC = $(shell basename $(PWD_RET))
 #CROSS = arm-linux-
 CC = $(CROSS)gcc
-CUR_sources = $(wildcard *.c lc6311/*.c q26e/*.c sim4100/*.c)
+CUR_sources = $(wildcard *.c lc6311/*.c q26e/*.c sim4100/*.c mc703/*.c)
 SOURCES = $(CUR_sources)
 OBJS = $(SOURCES:.c=.o)
 DEPS = $(SOURCES:.c=.d)
