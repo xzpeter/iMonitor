@@ -11,5 +11,6 @@ int mc703_module_startup(IDEV *p);
 int mc703_get_related_device(char *base_dev, RELATED_DEV *prd);
 int mc703_check_device_file(char *dev_name);
 int mc703_send_sms(IDEV *p, char *who, char *data);
+int mc703_parse_line(IDEV *p, char *line);
 
 #endif

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "../dm.h"
+#include "mc703.h"
 
 /*============================================*/
 /* 			some special functions			  */
