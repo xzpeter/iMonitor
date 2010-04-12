@@ -18,9 +18,9 @@ typedef enum _idev_type {
 	UNKNOWN		= 0,
 	LC6311		= 1,
 	SIM4100		= 2,
-// 	ETHERNET	= 3,
-// 	WLAN		= 4, 
-	MC703		= 5,
+	MC703		= 3,
+// 	ETHERNET	= 4,
+// 	WLAN		= 5, 
 } IDEV_TYPE;
 
 typedef enum _idev_group {
