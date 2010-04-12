@@ -514,7 +514,7 @@ void *thread_sms(void *data)
 	idev_user_malloc(p);
 	while (1) {
 		lock_device(p);
-		ret = p->send_sms(p, "10086", "hello 10086.");
+		ret = p->send_sms(p, "10000", "hello 10086.");
 		unlock_device(p);
 		if (ret)
 			thread_log(p, logid, "send sms error.");
