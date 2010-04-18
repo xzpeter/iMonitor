@@ -251,8 +251,12 @@ int mc703_send_sms(IDEV *p, char *who, char *data)
 			goto send_sms_error;
 		usleep(300000);
 	}
-
-	dm_log(p, "SMS sent : %s ---> %s", data, who);
+	
+	if (p->private_data.mc703.sms_return == MC703_SMS_RETURN_OK) {
+		dm_log(p, "SMS sent : %s ---> %s", data, who);
+	} else {
+		goto send_sms_error;
+	}
 //	unlock_device(p);
 	return 0;
 	
