@@ -27,6 +27,10 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.send_sms				= common_send_sms,
 		.forward				= common_forward,
 		.parse_line = common_parse_line,
+		.start_call = common_start_call,
+		.stop_call = common_stop_call,
+		.network_status = common_network_status,
+		.probe = common_probe,
 	},
 	{
 		.name					= "LC6311", 
@@ -40,6 +44,10 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.send_sms				= common_send_sms,
 		.forward				= common_forward,
 		.parse_line = common_parse_line,
+		.start_call = common_start_call,
+		.stop_call = common_stop_call,
+		.network_status = common_network_status,
+		.probe = common_probe,
 	}, 
 	{
 		.name					= "SIM4100", 
@@ -53,6 +61,10 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.send_sms				= common_send_sms,
 		.forward				= common_forward,
 		.parse_line = common_parse_line,
+		.start_call = common_start_call,
+		.stop_call = common_stop_call,
+		.network_status = common_network_status,
+		.probe = common_probe,
 	},
 	{
 		.name					= "MC703", 
@@ -66,6 +78,10 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 		.send_sms				= mc703_send_sms,
 		.forward				= common_forward,
 		.parse_line = mc703_parse_line,
+		.start_call = mc703_start_call,
+		.stop_call = mc703_stop_call,
+		.network_status = mc703_network_status,
+		.probe = common_probe,
 	}
 };
 
@@ -131,15 +147,19 @@ int unlock_device(IDEV *p)
 
 /* ONLY IF we do the assignment of the functions here, 
    can we use these functions in the host thread later on. */
-void idev_register_methods(IDEV *pidev, IDEV_TYPE type)
+void idev_register_methods(IDEV *p, IDEV_TYPE type)
 {
-	pidev->open_port = dev_model[type].open_port;
-	pidev->close_port = dev_model[type].close_port;
-	pidev->module_startup = dev_model[type].module_startup;
-	pidev->send = dev_model[type].send;
-	pidev->send_sms = dev_model[type].send_sms;
-	pidev->forward = dev_model[type].forward;
-	pidev->parse_line = dev_model[type].parse_line;
+	p->open_port = dev_model[type].open_port;
+	p->close_port = dev_model[type].close_port;
+	p->module_startup = dev_model[type].module_startup;
+	p->send = dev_model[type].send;
+	p->send_sms = dev_model[type].send_sms;
+	p->forward = dev_model[type].forward;
+	p->parse_line = dev_model[type].parse_line;
+	p->start_call = dev_model[type].start_call;
+	p->stop_call = dev_model[type].stop_call;
+	p->network_status = dev_model[type].network_status;
+	p->probe = dev_model[type].probe;
 }
 
 #define		RBUF_SIZE			4096

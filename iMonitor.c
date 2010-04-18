@@ -485,16 +485,17 @@ void *thread_creg(void *data)
 	idev_user_malloc(p);
 	while (1) {
 		lock_device(p);
-		ret = (AT_RETURN)p->send(p, "AT", NULL, AT_MODE_LINE);
+		ret = p->probe(p);
 		unlock_device(p);
-		snprintf(tmp, 64, "cmd AT sent, return is %d.", ret);
+		snprintf(tmp, 64, "AT sent, return is %d.", ret);
 		thread_log(p, logid, tmp);
 		if (idev_is_sick(p)) break;
 		sleep(2);
 
 		lock_device(p);
-		ret = (AT_RETURN)p->send(p, "AT+CREG?", buf, AT_MODE_LINE);
-		snprintf(tmp, 64, "\"AT+CREG?\" sent, return is %d, recv is %s", 
+// 		ret = (AT_RETURN)p->send(p, "AT+CREG?", buf, AT_MODE_LINE);
+		ret = p->network_status(p, buf);
+		snprintf(tmp, 64, "REQ SYSINFO, return is %d, recv is %s", 
 				ret, buf);
 		thread_log(p, logid, tmp);
 		unlock_device(p);
@@ -514,7 +515,7 @@ void *thread_sms(void *data)
 	idev_user_malloc(p);
 	while (1) {
 		lock_device(p);
-		ret = p->send_sms(p, "10086", "hello 10086.");
+ 		ret = p->send_sms(p, "10086", "hello 10086.");
 		unlock_device(p);
 		if (ret)
 			thread_log(p, logid, "send sms error.");
@@ -531,12 +532,22 @@ void *thread_sms(void *data)
 void *thread_call(void *data)
 {
 	char *logid = "call";
+	char *who;
 	int ret;
 	IDEV *p = (IDEV *)data;
 	idev_user_malloc(p);
+
+	/* check the modem type to decide
+		 which id to call */
+	if (p->type == MC703)
+		who = "10000";
+	else
+		who = "10086";
+
 	while (1) {
 		lock_device(p);
-		ret = p->send(p, "AT+CDV10000", NULL, AT_MODE_LINE);
+// 		ret = p->send(p, "AT+CDV10000", NULL, AT_MODE_LINE);
+		ret = p->start_call(p, who);
 		unlock_device(p);
 		if (ret)
 			thread_log(p, logid, "send ATD error.");
@@ -546,7 +557,8 @@ void *thread_call(void *data)
 		sleep(10);
 
 		lock_device(p);
-		ret = p->send(p, "AT+CHV", NULL, AT_MODE_LINE);
+// 		ret = p->send(p, "AT+CHV", NULL, AT_MODE_LINE);
+		ret = p->stop_call(p);
 		unlock_device(p);
 		if (ret)
 			thread_log(p, logid, "send ATH error.");

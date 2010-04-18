@@ -130,6 +130,10 @@ struct _idev {
 	int (*send_sms)(IDEV *, char *, char *);			/* send a SMS using send() */
 	int (*forward)(IDEV *, char *, int );
 	int (*parse_line)(IDEV *, char *);	/* modem specified parsing line function */
+	int (*start_call)(IDEV *p, char *);		/* start a call */
+	int (*stop_call)(IDEV *p);		/* stop a call */
+	int (*network_status)(IDEV *p, char *buf);	/* check recent network status */
+	int (*probe)(IDEV *p);	/* probe the modem */
 };
 
 typedef struct _dev_model {
@@ -145,6 +149,10 @@ typedef struct _dev_model {
 	int (*send_sms)(IDEV *, char *, char *);			
 	int (*forward)(IDEV *, char *, int );
 	int (*parse_line)(IDEV *, char *);	/* modem specified parsing line function */
+	int (*start_call)(IDEV *p, char *);		/* start a call */
+	int (*stop_call)(IDEV *p);		/* stop a call */
+	int (*network_status)(IDEV *p, char *buf);	/* check recent network status */
+	int (*probe)(IDEV *p);	/* probe the modem */
 } DEV_MODEL;
 
 /* keep module specified infomations */

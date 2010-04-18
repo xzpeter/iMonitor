@@ -272,3 +272,24 @@ int mc703_parse_line(IDEV *p, char *line)
 
 	return 0;
 }
+
+int mc703_start_call(IDEV *p, char *who)
+{
+	char cmd[64];
+	int n = strlen(who);
+	if (n < 0 || n > 20)
+		return AT_NOT_RET;
+	snprintf(cmd, 64, "AT+CDV%s", who);
+	return p->send(p, cmd, NULL, AT_MODE_LINE);
+}
+
+
+int mc703_stop_call(IDEV *p)
+{
+	return p->send(p, "AT+CHV", NULL, AT_MODE_LINE);
+}
+
+int mc703_network_status(IDEV *p, char *buf)
+{
+	return p->send(p, "AT^SYSINFO", buf, AT_MODE_LINE);
+}
