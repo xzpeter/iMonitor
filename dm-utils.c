@@ -2,6 +2,8 @@
    dm-utils.c : misc functions for device manager
 */
 
+#define	_GNU_SOURCE
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -269,7 +271,7 @@ void do_send_and_recv(IDEV *p)
 
 				/* record required response */
 				if (at->mode & AT_MODE_LINE) {
-					if (strstr(line, at->keyword))
+					if (strcasestr(line, at->keyword))
 						/* always the newest! */
 						strcpy(at->recv_buf, line);
 				} else { /* mode BLOCK */

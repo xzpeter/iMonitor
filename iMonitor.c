@@ -560,8 +560,8 @@ void *thread_call(void *data)
 }
 
 // #define	SIMGLE_THREAD_SINGLE_MODEM	1
-// #define	MULTI_THERAD_SINGLE_MODEM	1
-#define	MULTI_THREAD_MULTI_MODEM	1
+#define	MULTI_THERAD_SINGLE_MODEM	1
+// #define MULTI_THREAD_MULTI_MODEM	1
 
 /*************************************************/
 #if MULTI_THREAD_MULTI_MODEM
