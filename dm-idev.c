@@ -2,6 +2,7 @@
    dm-idev.c : device monitor base structure and functions
 */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -164,10 +165,13 @@ void idev_register_methods(IDEV *p, IDEV_TYPE type)
 
 #define		RBUF_SIZE			4096
 
+static int device_count[SUPPORTED_DEVICES] = {0, 0, 0, 0};
+
 /* init a idevice, the name string is used to identify the device, 
    type is used to decide which driver the device will use. */
 IDEV * idev_init(char *name, RELATED_DEV *rdev, IDEV_TYPE type)
 {
+	int type_n;
 	IDEV *pidev = NULL;
 
 	/* do the malloc */
@@ -198,7 +202,10 @@ IDEV * idev_init(char *name, RELATED_DEV *rdev, IDEV_TYPE type)
 		pthread_mutex_init(&(pidev->dev_mutex), NULL);
 
 		strcpy(pidev->dev_file.base_device, name);
-		strcpy(pidev->name, name);
+// 		strcpy(pidev->name, name);
+		type_n = (int)pidev->type;
+		snprintf(pidev->name, 32, "%s/%d", dev_model[type_n].name, 
+				device_count[type_n]++);
 		memcpy(&pidev->dev_file.related_device, rdev, sizeof(RELATED_DEV));
 
 		/* register related model functions to this device */

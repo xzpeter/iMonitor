@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 #include "dm.h"
 
 /* split 'ttyUSB12' to 'ttyUSB' and '12' */
@@ -214,10 +215,20 @@ void do_send_and_recv(IDEV *p)
 				/* clear recv buffer */
 				bzero(at->recv_buf, sizeof(at->recv_buf));
 				at->status = AT_SENT;
+				/* remember sent timestamp */
+				at->sent_time = time(NULL);
 				sleep(1);
 				break;
 			}
 		case AT_SENT:
+			{
+				time_t time_gone = time(NULL) - at->sent_time;
+				if (time_gone >= AT_TIMEOUT_SEC) {
+					/* wowow, it's totally timeout! */
+					at->ret = AT_NOT_RET;
+					at->status = AT_RECVED;
+				}
+			}
 			break;
 		case AT_RECVED:
 			break;
@@ -294,7 +305,10 @@ void do_send_and_recv(IDEV *p)
 				} else if (!strncmp(line, "> ", 2)) {
 					at->ret = AT_RAWDATA;
 					at->status = AT_RECVED;
-				} 
+				} else if (strstr(line, "NO CARRIER")) {
+					at->ret = AT_NO_CARRIER;
+					at->status = AT_RECVED;
+				}
 			}
 			handle_line(p, line);
 		}

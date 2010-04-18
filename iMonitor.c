@@ -382,8 +382,11 @@ int device_check(void)
 		for (j = dev_usage[i].start_num; j <= dev_usage[i].end_num; j++) {
 			if (dev_usage[i].in_use[j] == 0 && dev_usage[i].checked[j] == 1) {
 				/* a new device file */
-                dm_log(NULL, "%s%d found.", dev_usage[i].keyword, j);
-				dev_usage[i].type[j] = get_device_type(i, j);
+				IDEV_TYPE type;
+				type = get_device_type(i, j);
+				dev_usage[i].type[j] = type;
+				dm_log(NULL, "%s%d[%s] found.", dev_usage[i].keyword, j, 
+						dev_model[type].name);
 			} else if (dev_usage[i].in_use[j] == 1 
 					&& dev_usage[i].checked[j] == 0) {
 				int ret;
@@ -581,8 +584,8 @@ void *thread_call(void *data)
 }
 
 // #define	SIMGLE_THREAD_SINGLE_MODEM	1
-#define	MULTI_THERAD_SINGLE_MODEM	1
-// #define MULTI_THREAD_MULTI_MODEM	1
+// #define	MULTI_THERAD_SINGLE_MODEM	1
+#define MULTI_THREAD_MULTI_MODEM	1
 
 /*************************************************/
 #if MULTI_THREAD_MULTI_MODEM
@@ -604,9 +607,9 @@ void *multi_modem_testing(void *data)
 				dm_log(NULL, "device %s discovered, prepare to test...", 
 						p->name);
 
-//				pthread_create(tid, NULL, thread_creg, (void *)p);
+				pthread_create(tid, NULL, thread_creg, (void *)p);
 				pthread_create(tid+1, NULL, thread_sms, (void *)p);
-//				pthread_create(tid+2, NULL, thread_call, (void *)p);
+				pthread_create(tid+2, NULL, thread_call, (void *)p);
 			}
 		}
 		sleep(5);
@@ -662,7 +665,7 @@ void *single_modem_testing(void *data)
 				/* until all dead */
 			}
 		}
-		dm_log(NULL, "waiting for active modems ...");
+// 		dm_log(NULL, "waiting for active modems ...");
 		sleep(5);
 	}
 	return 0;

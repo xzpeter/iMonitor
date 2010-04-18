@@ -6,6 +6,7 @@
 #define		__DM_BASE_H__
 
 #include <pthread.h>
+#include <time.h>
 #include "rbuf.h"
 
 typedef void *(* handler)(void *);
@@ -56,6 +57,7 @@ typedef enum _at_return {
 	AT_CME_ERROR	=	3,		/* return "AT_CME_ERROR" */
 	AT_CMS_ERROR	=	4,		/* return "AT_CMS_ERROR" */
 	AT_HWERROR		=	5, 		/* hardware error */
+	AT_NO_CARRIER = 6, 		/* 'no carrier' error */
 } AT_RETURN;
 
 #define		IDEV_SEND_BUFLEN	128
@@ -80,6 +82,8 @@ typedef struct _idev_at_buf {
 	int mode;
 	AT_STATUS status;
 	AT_RETURN ret;
+	/* adding sent timestamp */
+	time_t sent_time;
 } IDEV_AT_BUF;
 
 #define		IDEV_NAME_LEN		256
