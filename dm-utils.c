@@ -225,6 +225,7 @@ void do_send_and_recv(IDEV *p)
 				time_t time_gone = time(NULL) - at->sent_time;
 				if (time_gone >= AT_TIMEOUT_SEC) {
 					/* wowow, it's totally timeout! */
+					dm_log(p, "TIMEOUT AT cmd, force return.");
 					at->ret = AT_NOT_RET;
 					at->status = AT_RECVED;
 				}
