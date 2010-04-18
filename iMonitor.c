@@ -509,13 +509,22 @@ void *thread_creg(void *data)
 /* task 2. Send SMS ? */
 void *thread_sms(void *data)
 {
+	char *who;
 	char *logid = "sms";
 	int ret;
 	IDEV *p = (IDEV *)data;
 	idev_user_malloc(p);
+
+	/* check the modem type to decide
+		 which id to call */
+	if (p->type == MC703)
+		who = "10000";
+	else
+		who = "10086";
+
 	while (1) {
 		lock_device(p);
- 		ret = p->send_sms(p, "10086", "hello 10086.");
+ 		ret = p->send_sms(p, who, "hello!");
 		unlock_device(p);
 		if (ret)
 			thread_log(p, logid, "send sms error.");

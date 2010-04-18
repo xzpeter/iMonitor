@@ -5,6 +5,10 @@ use Data::Dumper;
 $\ = "\n";
 $| = 1;
 
+sub printline {
+	print "====================";
+}
+
 # form statistic list from log files
 
 my @LOG_SMS = `ls | grep sms.txt`;
@@ -17,16 +21,20 @@ sub gettype {
 	$1;
 }
 
+printline();
+
 foreach my $sms (@LOG_SMS) {
 	my $type = gettype($sms);
-	my @res = `sed -n '/success/p' $sms` or die $!;
+	my @res = `sed -n '/success/p' $sms`;
 	my $good = scalar @res;
-	@res = `sed -n '/error/p' $sms` or die $!;
+	@res = `sed -n '/error/p' $sms`;
 	my $bad = scalar @res;
 	print "modem $type of SMS test result: ";
 	print "\tgood: $good, bad: $bad. rate: ", 
 		  int($good/($bad+$good)*100), "\%";
 }
+
+printline();
 
 foreach my $creg_file (@LOG_CREG) {
 	my $type = gettype($creg_file);
@@ -44,6 +52,8 @@ foreach my $creg_file (@LOG_CREG) {
 	}
 }
 
+printline();
+
 foreach my $call (@LOG_CALL) {
 	my $type = gettype($call);
 	open my $fh, "<$call" or die $!;
@@ -55,3 +65,6 @@ foreach my $call (@LOG_CALL) {
 	print "\tgood: $good, bad: $bad, rate: ", 
 		  int($good/($bad+$good)*100), "\%";
 }
+
+printline();
+
