@@ -14,6 +14,7 @@ sub printline {
 my @LOG_SMS = `ls | grep sms.txt`;
 my @LOG_CREG = `ls | grep creg.txt`;
 my @LOG_CALL = `ls | grep call.txt`;
+my @LOG_RANDOM = `ls | grep random.txt`;
 
 sub gettype {
 	my $str = shift;
@@ -68,3 +69,21 @@ foreach my $call (@LOG_CALL) {
 
 printline();
 
+foreach my $rand_log (@LOG_RANDOM) {
+	my $type = gettype($rand_log);
+	open my $fh, "<$rand_log" or die "cannot open fh: $!";
+	my @dat = <$fh>;
+	close $fh;
+	my $dat = join "", @dat;
+	my @res = ($dat =~ / - (\S+)/g);
+	my %res;
+	foreach my $str (@res) {
+		$res{$str}++;
+	}
+	print "modem $type of RANDOM CMD test result: ";
+	foreach my $key (keys %res) {
+		print "\t", $key, " : ", $res{$key};
+	}
+}
+
+printline();

@@ -220,7 +220,6 @@ int mc703_send_sms(IDEV *p, char *who, char *data)
 	p->private_data.mc703.sms_return = MC703_SMS_RETURN_WAIT;
 
 	/* first, get the ownership of the device */
-	//	lock_device(p);
 	if ((ret = strlen(who)) >= MAX_MOBILE_ID_LEN) {
 		dm_log(p, "CELLID TOO LONG in common_send_sms(), [len=%d] : %s", ret, who); goto send_sms_error; }
 	if (strlen(data) >= 500) {
@@ -257,11 +256,9 @@ int mc703_send_sms(IDEV *p, char *who, char *data)
 	} else {
 		goto send_sms_error;
 	}
-//	unlock_device(p);
 	return 0;
 	
 send_sms_error:
-//	unlock_device(p);
 	return -1;
 
 }

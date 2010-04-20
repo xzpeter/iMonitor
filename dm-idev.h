@@ -122,7 +122,7 @@ struct _idev {
 	/* keep some private data for different kind of modems */
 	union {
 		struct {
-			char sms_return;	/* use this flag to indicate sms results */
+			volatile char sms_return;	/* use this flag to indicate sms results */
 		} mc703 ;
 	} private_data ;
 	
