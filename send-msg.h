@@ -11,6 +11,7 @@
 #include "dm.h"
 #include "type.h"
 #include "timer.h"
+#include "task-type.h"
 
 #define MSG_LOW_PRIOR	0
 #define MSG_HIGH_PRIOR	1
@@ -21,6 +22,11 @@
 
 #define MAX_MSG_LEN	160
 #define MAX_TARGET_LEN	16
+
+/* 彩信notification长度 */
+#define  MAX_SMS_MMS_LEN                300
+
+#define  MAX_SEQ_LEN                    4
 
 typedef struct _send_msg_buf SEND_MSG;
 
@@ -35,6 +41,37 @@ struct _send_msg_buf
 	char cont[MAX_MSG_LEN];
 	SEND_MSG *next;
 };
+
+////////////////////////////////////////////////////////////////////
+//  接收下来或者需要发送的短信息的暂存缓冲区的类型定义            //
+////////////////////////////////////////////////////////////////////
+typedef union _sms_buff {
+        char smsdata[MAX_SMS_MMS_LEN];
+        struct {
+                char magic[1];
+                //uchar separator1;
+                char monitor[MAX_MOBILE_IDLEN];
+                //uchar separator2;
+                char network;
+                char montype;
+                char taskid[MAX_TASKID_LEN];
+                //uchar separator3;
+                char seq[MAX_SEQ_LEN];
+                //uchar separator4;
+                char tasktype[2];
+                //uchar separator5;
+                char conttype[2];
+                //uchar separator6;
+                char segtotal[2];
+                //uchar separator7;
+                char segnum[2];
+                //uchar separator8;
+                char contlen[3];
+                //uchar separator9;
+                char cc[2];
+                char cont[1];
+        } hdr;
+} sms_buff;
 
 /* functions to use */
 extern int init_s_msg(SEND_MSG *msg, IDEV *pIDEV);
