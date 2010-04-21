@@ -11,6 +11,8 @@ typedef unsigned short ushort;
 typedef unsigned int uint32;
 typedef signed int sint32;
 
+typedef unsigned long long uint64;
+
 typedef unsigned char 	AT_STAT;
 
 #ifndef NULL

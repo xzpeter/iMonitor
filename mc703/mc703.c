@@ -220,7 +220,6 @@ int mc703_send_sms(IDEV *p, char *who, char *data)
 	p->private_data.mc703.sms_return = MC703_SMS_RETURN_WAIT;
 
 	/* first, get the ownership of the device */
-	//	lock_device(p);
 	if ((ret = strlen(who)) >= MAX_MOBILE_ID_LEN) {
 		dm_log(p, "CELLID TOO LONG in common_send_sms(), [len=%d] : %s", ret, who); goto send_sms_error; }
 	if (strlen(data) >= 500) {
@@ -251,13 +250,15 @@ int mc703_send_sms(IDEV *p, char *who, char *data)
 			goto send_sms_error;
 		usleep(300000);
 	}
-
-	dm_log(p, "SMS sent : %s ---> %s", data, who);
-//	unlock_device(p);
+	
+	if (p->private_data.mc703.sms_return == MC703_SMS_RETURN_OK) {
+		dm_log(p, "SMS sent : %s ---> %s", data, who);
+	} else {
+		goto send_sms_error;
+	}
 	return 0;
 	
 send_sms_error:
-//	unlock_device(p);
 	return -1;
 
 }
@@ -271,4 +272,25 @@ int mc703_parse_line(IDEV *p, char *line)
 		p->private_data.mc703.sms_return = MC703_SMS_RETURN_ERR;
 
 	return 0;
+}
+
+int mc703_start_call(IDEV *p, char *who)
+{
+	char cmd[64];
+	int n = strlen(who);
+	if (n < 0 || n > 20)
+		return AT_NOT_RET;
+	snprintf(cmd, 64, "AT+CDV%s", who);
+	return p->send(p, cmd, NULL, AT_MODE_LINE);
+}
+
+
+int mc703_stop_call(IDEV *p)
+{
+	return p->send(p, "AT+CHV", NULL, AT_MODE_LINE);
+}
+
+int mc703_network_status(IDEV *p, char *buf)
+{
+	return p->send(p, "AT^SYSINFO", buf, AT_MODE_LINE);
 }

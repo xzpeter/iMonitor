@@ -33,4 +33,16 @@ int common_forward(IDEV *p, char *who, int n);
 /* parsing a line received from modem. */
 int common_parse_line(IDEV *p, char *line);
 
+/* start a call */
+int common_start_call(IDEV *p, char *who);
+
+/* stop a call */
+int common_stop_call(IDEV *p);
+
+/* checkout network status */
+int common_network_status(IDEV *p, char *buf);
+
+/* probe the modem */
+int common_probe(IDEV *p);
+
 #endif

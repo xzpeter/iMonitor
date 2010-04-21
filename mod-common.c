@@ -292,3 +292,28 @@ int common_parse_line(IDEV *p, char *line)
 {
 	return 0;
 }
+
+int common_start_call(IDEV *p, char *who)
+{
+	char cmd[64];
+	int n = strlen(who);
+	if (n < 0 || n > MAX_MOBILE_ID_LEN)
+		return AT_NOT_RET;
+	snprintf(cmd, 64, "ATD%s;", who);
+	return p->send(p, cmd, NULL, AT_MODE_LINE);
+}
+
+int common_stop_call(IDEV *p)
+{
+	return p->send(p, "ATH", NULL, AT_MODE_LINE);
+}
+
+int common_network_status(IDEV *p, char *buf)
+{
+	return p->send(p, "AT+CREG?", buf, AT_MODE_LINE);
+}
+
+int common_probe(IDEV *p)
+{
+	return p->send(p, "AT", NULL, AT_MODE_LINE);
+}

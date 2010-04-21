@@ -9,3 +9,5 @@ iMonitor
 log.latest
 .gdbinit
 logs
+*.txt
+logs/*

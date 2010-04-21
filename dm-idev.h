@@ -6,6 +6,7 @@
 #define		__DM_BASE_H__
 
 #include <pthread.h>
+#include <time.h>
 #include "rbuf.h"
 
 typedef void *(* handler)(void *);
@@ -18,9 +19,9 @@ typedef enum _idev_type {
 	UNKNOWN		= 0,
 	LC6311		= 1,
 	SIM4100		= 2,
-// 	ETHERNET	= 3,
-// 	WLAN		= 4, 
-	MC703		= 5,
+	MC703		= 3,
+// 	ETHERNET	= 4,
+// 	WLAN		= 5, 
 } IDEV_TYPE;
 
 typedef enum _idev_group {
@@ -56,6 +57,7 @@ typedef enum _at_return {
 	AT_CME_ERROR	=	3,		/* return "AT_CME_ERROR" */
 	AT_CMS_ERROR	=	4,		/* return "AT_CMS_ERROR" */
 	AT_HWERROR		=	5, 		/* hardware error */
+	AT_NO_CARRIER = 6, 		/* 'no carrier' error */
 } AT_RETURN;
 
 #define		IDEV_SEND_BUFLEN	128
@@ -80,6 +82,8 @@ typedef struct _idev_at_buf {
 	int mode;
 	AT_STATUS status;
 	AT_RETURN ret;
+	/* adding sent timestamp */
+	time_t sent_time;
 } IDEV_AT_BUF;
 
 #define		IDEV_NAME_LEN		256
@@ -118,7 +122,7 @@ struct _idev {
 	/* keep some private data for different kind of modems */
 	union {
 		struct {
-			char sms_return;	/* use this flag to indicate sms results */
+			volatile char sms_return;	/* use this flag to indicate sms results */
 		} mc703 ;
 	} private_data ;
 	
@@ -130,6 +134,10 @@ struct _idev {
 	int (*send_sms)(IDEV *, char *, char *);			/* send a SMS using send() */
 	int (*forward)(IDEV *, char *, int );
 	int (*parse_line)(IDEV *, char *);	/* modem specified parsing line function */
+	int (*start_call)(IDEV *p, char *);		/* start a call */
+	int (*stop_call)(IDEV *p);		/* stop a call */
+	int (*network_status)(IDEV *p, char *buf);	/* check recent network status */
+	int (*probe)(IDEV *p);	/* probe the modem */
 };
 
 typedef struct _dev_model {
@@ -145,6 +153,10 @@ typedef struct _dev_model {
 	int (*send_sms)(IDEV *, char *, char *);			
 	int (*forward)(IDEV *, char *, int );
 	int (*parse_line)(IDEV *, char *);	/* modem specified parsing line function */
+	int (*start_call)(IDEV *p, char *);		/* start a call */
+	int (*stop_call)(IDEV *p);		/* stop a call */
+	int (*network_status)(IDEV *p, char *buf);	/* check recent network status */
+	int (*probe)(IDEV *p);	/* probe the modem */
 } DEV_MODEL;
 
 /* keep module specified infomations */
