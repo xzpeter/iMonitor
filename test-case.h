@@ -168,7 +168,7 @@ void *thread_random_cmd(void *data)
 		}
 
 		if (idev_is_sick(p)) break;
-		sleep(1);
+		sleep(5);
 	}
 	idev_user_free(p);
 	return NULL;

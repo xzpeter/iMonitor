@@ -191,7 +191,7 @@ int unregister_device(int i)
 	idev_release(p);
 	dev_list.dev[i].idev = NULL;
 
-	dm_log(NULL, "REMOVING device index %d.", i);
+	dm_log(NULL, "REMOVED device index %d.", i);
 
 	/* done */
 	return 0;
@@ -389,14 +389,14 @@ int device_check(void)
 			} else if (dev_usage[i].in_use[j] == 1 
 					&& dev_usage[i].checked[j] == 0) {
 				int ret;
-                dm_log(NULL, "%s%d removed.", dev_usage[i].keyword, j);
+				dm_log(NULL, "%s%d removed.", dev_usage[i].keyword, j);
 				/* a model in use is untached, try to unreg it */
 				if ((ret = remove_untached_device(i, j)) < 0) {
 					/* remove error */
 					dm_log(NULL, "ERROR : removing device %s%d failed.[%d]", 
 							dev_usage[i].keyword, j, ret);
 				} else { /* remove ok */
-					dm_log(NULL, "REMOVE device %s%d index %d.", 
+					dm_log(NULL, "DETECT REMOVE device %s%d index %d.", 
 							dev_usage[i].keyword, j, ret);
 				}
 			}

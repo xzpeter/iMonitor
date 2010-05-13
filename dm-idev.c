@@ -222,13 +222,13 @@ free_idev:
 /* free a idev structure */
 void idev_release(IDEV *pidev)
 {
+	pidev->close_port(pidev);
+	pidev->r = rbuf_release(pidev->r);
 	if (pthread_mutex_destroy(&pidev->mutex) || 
 		pthread_mutex_destroy(&pidev->dev_mutex)) {
 		dm_log(pidev, "VITAL!! mutex is destroyed while some thread "
 				"is using it!");
 	}
-	pidev->close_port(pidev);
-	pidev->r = rbuf_release(pidev->r);
 	free(pidev);
 }
 
