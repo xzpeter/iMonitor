@@ -45,4 +45,7 @@ int common_network_status(IDEV *p, char *buf);
 /* probe the modem */
 int common_probe(IDEV *p);
 
+/* read self SIM number and put the number into 'buf' */
+int common_get_self_sim_number(IDEV *p, char *num);
+
 #endif

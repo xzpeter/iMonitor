@@ -89,6 +89,8 @@ const DEV_MODEL dev_model[SUPPORTED_DEVICES] = {
 /* check if the device is ok or not */
 int idev_is_sick(IDEV *p)
 {
+	if (p == NULL)
+		return -1;
 	return (idev_get_status(p) >= SICK);
 }
 
@@ -210,6 +212,11 @@ IDEV * idev_init(char *name, RELATED_DEV *rdev, IDEV_TYPE type)
 
 		/* register related model functions to this device */
 		idev_register_methods(pidev, type);
+
+		/* clear UID and simcard number */
+		bzero(&pidev->uid, sizeof(UID));
+		/* init simcard number by 0000 */
+		strcpy(pidev->sim, "0000");
 	}
 
 	return pidev;
@@ -265,6 +272,8 @@ void idev_set_enable(IDEV *pidev)
 
 int idev_get_enable(IDEV *pidev)
 {
+	if (pidev == NULL)
+		return -1;
 	return pidev->enabled;
 }
 
@@ -293,6 +302,20 @@ void idev_set_group(IDEV *pidev, IDEV_GROUP group)
 	idev_lock(pidev);
 	pidev->group = group;
 	idev_unlock(pidev);
+}
+
+IDEV_GROUP idev_get_group(IDEV *p)
+{
+	if (p == NULL)
+		return -1;
+	return p->group;
+}
+
+char *idev_get_sim(IDEV *p)
+{
+	if (p == NULL)
+		return NULL;
+	return p->sim;
 }
 
 int idev_check_active(IDEV *pidev)

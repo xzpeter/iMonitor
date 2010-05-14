@@ -11,7 +11,7 @@
 #include "dm.h"
 #include "type.h"
 #include "timer.h"
-#include "task-type.h"
+//#include "task-type.h"
 
 #define MSG_LOW_PRIOR	0
 #define MSG_HIGH_PRIOR	1
@@ -50,7 +50,7 @@ typedef union _sms_buff {
         struct {
                 char magic[1];
                 //uchar separator1;
-                char monitor[MAX_MOBILE_IDLEN];
+                char monitor[MAX_MOBILE_ID_LEN];
                 //uchar separator2;
                 char network;
                 char montype;

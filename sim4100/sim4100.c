@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "../dm.h"
+#include "../mod-common.h"
 
 int sim4100_check_device_file(char *dev_name)
 {
@@ -97,6 +98,10 @@ int sim4100_module_startup(IDEV *p)
 		return -2;
 	if (!strstr(buf, "OK"))
 		return -1;
+
+	/* get self SIM card number, and put into p->sim */
+	if (common_get_self_sim_number(p, p->sim))
+		return -3;
 
 	daemon_flush(p);
 

@@ -13,45 +13,20 @@
 /* FIX ME */
 #include "mod-common.h"
 
-/* max scan range of device file */
-#define		MAX_DEVICES_NUM_OF_SAME_PREFIX	32		
-
-/* this MUST be modified when 'dev_usage' is changed. */
-#define		SUPPORTED_DEVICE_PREFIX_N		1
+#include "dm-base.h"
 
 /* we'll scan all the files in the /dev/ dir, related with the keywords 
    below, and try to allocate every effective file node to a module. */
-static struct _dev_usage {
-	/* e.g. 'ttyUSB' */
-	char *keyword;
-	/* 0 <= start_num <= end_num < MAX_DEVICES_NUM_OF_SAME_PREFIX */
-	/* if start_num > end_num, no device would be checked. */
-	unsigned int start_num;
-	unsigned int end_num;		
-	/* if enabled is set to 0, the corresponding dev is skipped */
-	unsigned char enabled[MAX_DEVICES_NUM_OF_SAME_PREFIX];
-	/* if in_use[n] is set, the file '/dev/keywordn' is in use */
-	unsigned char in_use[MAX_DEVICES_NUM_OF_SAME_PREFIX];
-	/* if we find 'keywordn' file exists, then set checked[n] */
-	unsigned char checked[MAX_DEVICES_NUM_OF_SAME_PREFIX];
-	/* keep the model type that 'keywordn' belongs to */
-	unsigned char type[MAX_DEVICES_NUM_OF_SAME_PREFIX];
-} dev_usage[SUPPORTED_DEVICE_PREFIX_N] = {
+
+/* this MUST be modified when 'dev_usage' is changed. */
+#define		SUPPORTED_DEVICE_PREFIX_N		1
+static DEV_USAGE dev_usage[SUPPORTED_DEVICE_PREFIX_N] = {
 	{ "ttyUSB", 0, 20}, 
 // 	{ "ttys", 0, 1}
 };
 
-typedef struct _dev_node {
-	int active;
-	int during_test;	/* used only in modem test */
-	IDEV *idev;
-} DEV_NODE;
-
-/* this is the vital list that keeps all the device info */
-static struct _dev_list {
-	DEV_NODE dev[MAX_DEVICE_NO];
-	int dev_total;
-} dev_list;
+/* this one now is public for some of the codes, e.g. dm-uid.c */
+DEV_LIST dev_list;
 
 int dev_prefix_find_index(char *prefix);
 int mark_related_device_in_dev_usage(RELATED_DEV *r_dev, int value);
@@ -502,11 +477,11 @@ int main(int argc, char *argv[])
 	/* set all devices to 'not_in_use', which is 0 */
 	dev_usage_init();
 	/* start testing thread */
-	pthread_create(&main_thread, NULL, single_modem_testing, NULL);
+// 	pthread_create(&main_thread, NULL, single_modem_testing, NULL);
 
 	while(1) 
 	{
-// 		dm_log(NULL, "start to check device ...");
+		dm_log(NULL, "start to check device ...");
 		device_check();
 		sleep(1);
 	}

@@ -28,7 +28,7 @@ void *thread_creg(void *data)
 	char buf[64];
 	char tmp[64];
 	char *logid = "creg";
-	int ret;
+	int ret = 0;
 	IDEV *p = (IDEV *)data;
 	idev_user_malloc(p);
 	while (1) {

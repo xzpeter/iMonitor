@@ -141,7 +141,7 @@ void at_buffer_init(IDEV_AT_BUF *at)
 
 void do_init_work(IDEV *p)
 {
-	int startup_ok, retry;
+	int startup_ok, retry, ret;
 	/* the module is enabled by main process */
 	dm_log(p, "device enabled ... prepare to startup ...");
 
@@ -172,9 +172,24 @@ void do_init_work(IDEV *p)
 	}
 	dm_log(p, "STARTUP ok.");
 
+	/* after startup, the device should both have 'type' and 'sim number',
+	 * then UID can be calculated. */
+	if ((ret = uid_fill(&p->uid, p->type, p->sim))) {
+		dm_log(p, "uid_fill failed, return is %d.", ret);
+		dm_log(p, "since ANY device should have a uid, so I decided to "
+				"kill this suspicious one... DIE NOW!");
+		idev_set_status(p, DEAD);
+		return;
+	}
+
+	/* it seems that UID is good */
+	dm_log(p, "UID is successfully formed: (%d,%s)", p->type, p->sim);
+
 	/* start up ok */
 	at_buffer_init(&p->at);
 	idev_set_status(p, READY);
+	
+	return;
 }
 
 /* all the infomation handles in here */

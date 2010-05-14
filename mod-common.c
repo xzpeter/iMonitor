@@ -317,3 +317,37 @@ int common_probe(IDEV *p)
 {
 	return p->send(p, "AT", NULL, AT_MODE_LINE);
 }
+
+/* read the 1st entry in the address book to get self SIMcard number */
+int common_get_self_sim_number(IDEV *p, char *num)
+{
+	int result;
+	char *s, buf[100];
+	/* get self number */
+	result = daemon_send(p, "AT+CPBR=01", buf);
+	if (result)
+		return -1;
+	if ((s = strstr(buf, "+CPBR: 1,"))) {
+		sscanf(s, "+CPBR: 1,\"%[0-9+]s\"", num);
+		return 0;
+	} else
+		return -2;
+}
+
+// /* read the index i of the phonebook. */
+// int common_read_phonebook(IDEV *p, char *who, int i)
+// {
+// 	char buf[128] = "";
+// 	char cmd[64];
+// 
+// 	if (who == NULL)
+// 		return -1;
+// 	if (i <= 0 || i >= 40)
+// 		return -2;
+// 
+// 	snprintf(cmd, 64, "AT+CPBR=%d", i);
+// 	if (!(p->send(p, cmd, buf, AT_MODE_LINE) == AT_OK))
+// 		return -3;
+// 	if (buf[0] == 0x00)
+// 		return -4;
+// }

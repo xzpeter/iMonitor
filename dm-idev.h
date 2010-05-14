@@ -1,13 +1,18 @@
 /*
-   dm-idev.h : device monitor base structure and functions
-*/
+ * dm-idev.h : device monitor base structure and functions
+ */
 
-#ifndef		__DM_BASE_H__
-#define		__DM_BASE_H__
+#ifndef		__DM_IDEV_H__
+#define		__DM_IDEV_H__
 
 #include <pthread.h>
 #include <time.h>
 #include "rbuf.h"
+#include "dm-config.h"
+
+typedef struct _idev IDEV;
+
+#include "dm-uid.h"
 
 typedef void *(* handler)(void *);
 typedef void *(* handler2)(void *, void *);
@@ -101,8 +106,6 @@ typedef struct _idev_dev_file {		/* related device files */
 	RELATED_DEV related_device;
 } IDEV_DEV_FILE;
 
-typedef struct _idev IDEV;
-
 struct _idev {
 	/* idev data structures */
 	RBUF *r;					/* a simple round buffer */
@@ -118,6 +121,9 @@ struct _idev {
 	pthread_mutex_t dev_mutex;	/* mutex of the abstract device */
 	int portfd;					/* file handler of the serial port */
 	IDEV_DEV_FILE dev_file;		/* keep related device files */
+	/* added 2010.5.13 */
+	UID uid;			/* the unique id of the device */
+	char sim[MAX_MOBILE_ID_LEN];		/* simcard number */
 
 	/* keep some private data for different kind of modems */
 	union {
@@ -176,15 +182,16 @@ extern void idev_set_enable(IDEV *p_idev);
 extern int idev_get_enable(IDEV *p_idev);
 extern void idev_set_disable(IDEV *p_idev);
 extern void idev_set_group(IDEV *p_idev, IDEV_GROUP group);
+extern IDEV_GROUP idev_get_group(IDEV *p);
 // extern int idev_check_active(IDEV *p);
 extern void idev_set_status(IDEV *p_idev, IDEV_STATUS status);
 extern IDEV_STATUS idev_get_status(IDEV *p_idev);
 extern int idev_lock(IDEV *p);
 extern int idev_unlock(IDEV *p);
-int lock_device(IDEV *p);
-int unlock_device(IDEV *p);
-void idev_user_malloc(IDEV *pidev);
-void idev_user_free(IDEV *pidev);
-int idev_is_sick(IDEV *p);
+extern int lock_device(IDEV *p);
+extern int unlock_device(IDEV *p);
+extern void idev_user_malloc(IDEV *pidev);
+extern void idev_user_free(IDEV *pidev);
+extern int idev_is_sick(IDEV *p);
 
 #endif
