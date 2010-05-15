@@ -39,8 +39,8 @@ int uid_clear(PUID pu)
 }
 
 /* to seek for a specific device by simcard 
- * return NULL if not found, or return the IDEV pointer */
-IDEV * uid_seek_by_keystr(char *sim)
+ * return NULL if not found, or return the PUID pointer */
+PUID uid_seek_by_keystr(char *sim)
 {
 	int i;
 	IDEV *p;
@@ -51,13 +51,13 @@ IDEV * uid_seek_by_keystr(char *sim)
 		if (strncmp(pu->s, sim, UID_STR_LEN_MAX))
 			continue;
 		/* find the device */
-		return p;
+		return pu;
 	}
 	return NULL;
 }
 
-/* seek UID, return IDEV pointer if exist. */
-IDEV * uid_seek(PUID pu)
+/* seek UID, return IDEV pointer if exist, else NULL. */
+IDEV * uid_get_idev(PUID pu)
 {
 	int i;
 	IDEV *p;
@@ -71,6 +71,13 @@ IDEV * uid_seek(PUID pu)
 		return p;
 	}
 	return NULL;
+}
+
+/* to seek for a specific device by UID
+ * return 0 if not found. else 1 */
+int uid_seek(PUID pu)
+{
+	return (uid_get_idev(pu) ? 1 : 0);
 }
 
 /* fill in a UID structure, from 'type' and 'str' keyword */

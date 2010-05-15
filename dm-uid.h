@@ -37,10 +37,13 @@ char uid_get_type(PUID pu);
 char *uid_get_s(PUID pu);
 
 /* to seek for a specific device by simcard 
- * return NULL if not found, or return the PUID */
-IDEV * uid_seek_by_sim(char *sim);
-/* seek device by UID */
-IDEV * uid_seek(PUID pu);
+ * return NULL if not found, or return the PUID pointer */
+PUID uid_seek_by_keystr(char *sim);
+/* to seek for a specific device by UID
+ * return 0 if not found. else nonzero */
+int uid_seek(PUID pu);
+/* seek UID, return IDEV pointer if exist, else NULL. */
+IDEV * uid_get_idev(PUID pu);
 /* fillin a UID structure with 'type' and 'str' */
 int uid_fill(PUID pu, char type, char *s);
 /* check if the device is available by indexing UID 
