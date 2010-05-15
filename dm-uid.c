@@ -112,7 +112,7 @@ char *uid_get_s(PUID pu)
  * return 1 if valid, or 0.*/
 int uid_is_valid(PUID pu)
 {
-	IDEV *p = uid_seek(pu);
+	IDEV *p = uid_get_idev(pu);
 	if (p == NULL)
 		return 0;
 	if (idev_is_sick(p))
@@ -124,7 +124,7 @@ int uid_is_valid(PUID pu)
 static int uid_is_a_xxx(PUID pu, IDEV_GROUP group)
 {
 	/* first, find the device */
-	IDEV *p = uid_seek(pu);
+	IDEV *p = uid_get_idev(pu);
 	/* not found */
 	if (p == NULL)
 		return 0;
